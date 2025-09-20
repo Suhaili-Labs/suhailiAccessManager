@@ -52,38 +52,34 @@ void tcpSet(bool send, bool recv, json& ndiConfig) {
 
 }
 
-int main(){
+void rudpSet(bool send, bool recv, json& ndiConfig) {
 
-  json ndiConfig;
-
-  const string configPath = getHomeDir() + "/.ndi/ndi-config.v1.json";
-
-  cout << "NDI Config Dir: ";
-  cout << configPath << endl;
-  
-  ifstream inputFile(configPath);
-  if (!inputFile.is_open()) {
-    std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
-    return 1;
+  if (!ndiConfig["ndi"].contains("rudp")) {
+    ndiConfig["ndi"]["rudp"] = {
+      {"recv", {{"enable", false}}},
+      {"send", {{"enable", false}}}
+    };
   }
 
-  inputFile >> ndiConfig;
-  inputFile.close();
-
-  tcpSet(true, false, ndiConfig);
-
-  cout << "===========NDI CONFIG JSON===========" << endl;
-  cout << ndiConfig.dump(2) << endl; 
-  cout << "===========NDI CONFIG JSON===========" << endl;
-  
-  ofstream outputFile(configPath);
-  if (!outputFile.is_open()) {
-    std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
-    return 1;
+  if (!ndiConfig["ndi"]["rudp"].contains("send")) {
+   ndiConfig["ndi"]["rudp"]["send"] = {{"enable", false}};
   }
 
-  outputFile << ndiConfig.dump(2);
+  if (send) {
+    ndiConfig["ndi"]["rudp"]["send"]["enable"] = true;
+  } else { 
+    ndiConfig["ndi"]["rudp"]["send"]["enable"] = false;
+  }
 
-  return 0;
+  if (!ndiConfig["ndi"]["rudp"].contains("recv")) {
+   ndiConfig["ndi"]["rudp"]["recv"] = {{"enable", false}};
+  }
+
+  if (recv) {
+    ndiConfig["ndi"]["rudp"]["recv"]["enable"] = true;
+  } else { 
+    ndiConfig["ndi"]["rudp"]["recv"]["enable"] = false;
+  }
 
 }
+
