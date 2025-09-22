@@ -120,3 +120,13 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
 
 }
 
+void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
+
+  if (!ndiConfig["ndi"].contains("multicast")) {
+    ndiConfig["ndi"]["multicast"] = {
+      {"recv", {{"enable", false}, {"subnets", ""}}},
+      {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
+    };
+  }
+
+}
