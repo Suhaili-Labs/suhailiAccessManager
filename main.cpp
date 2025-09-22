@@ -35,6 +35,8 @@ int main(){
 
   tcpSet(true, false, ndiConfig);
   rudpSet(true, false, ndiConfig);
+  unicastSet(true, false, ndiConfig);
+  machineName("ALEX MAC", ndiConfig);
 
   cout << "===========NDI CONFIG JSON===========" << endl;
   cout << ndiConfig.dump(2) << endl; 
@@ -47,6 +49,7 @@ int main(){
   }
 
   outputFile << ndiConfig.dump(2);
+  outputFile.close();
 
   return 0;
 

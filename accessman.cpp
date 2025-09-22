@@ -21,6 +21,12 @@ bool configExists(const string& filePath) {
   return std::filesystem::exists(filePath);
 }
 
+void machineName(string name, json& ndiConfig) {
+  
+  ndiConfig["ndi"]["machineName"] = name;
+
+}
+
 void tcpSet(bool send, bool recv, json& ndiConfig) {
 
   if (!ndiConfig["ndi"].contains("tcp")) {
@@ -79,6 +85,37 @@ void rudpSet(bool send, bool recv, json& ndiConfig) {
     ndiConfig["ndi"]["rudp"]["recv"]["enable"] = true;
   } else { 
     ndiConfig["ndi"]["rudp"]["recv"]["enable"] = false;
+  }
+
+}
+
+void unicastSet(bool send, bool recv, json& ndiConfig) {
+
+  if (!ndiConfig["ndi"].contains("unicast")) {
+    ndiConfig["ndi"]["unicast"] = {
+      {"recv", {{"enable", false}}},
+      {"send", {{"enable", false}}}
+    };
+  }
+
+  if (!ndiConfig["ndi"]["unicast"].contains("send")) {
+   ndiConfig["ndi"]["unicast"]["send"] = {{"enable", false}};
+  }
+
+  if (send) {
+    ndiConfig["ndi"]["unicast"]["send"]["enable"] = true;
+  } else { 
+    ndiConfig["ndi"]["unicast"]["send"]["enable"] = false;
+  }
+
+  if (!ndiConfig["ndi"]["unicast"].contains("recv")) {
+   ndiConfig["ndi"]["unicast"]["recv"] = {{"enable", false}};
+  }
+
+  if (recv) {
+    ndiConfig["ndi"]["unicast"]["recv"]["enable"] = true;
+  } else { 
+    ndiConfig["ndi"]["unicast"]["recv"]["enable"] = false;
   }
 
 }
