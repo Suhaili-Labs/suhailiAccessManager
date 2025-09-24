@@ -104,7 +104,15 @@ void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
       {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
     };
   }
-  
 
+  if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
+   ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
+  }
+
+
+  ndiConfig["ndi"]["multicast"]["recv"]["enable"] = recv;
+
+// Change to vector? Maybe not
+  ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = subnets;
 
 }
