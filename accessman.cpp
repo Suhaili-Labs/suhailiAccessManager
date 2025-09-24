@@ -40,21 +40,13 @@ void tcpSet(bool send, bool recv, json& ndiConfig) {
     ndiConfig["ndi"]["tcp"]["send"] = {{"enable", false}};
   }
 
-  if (send){
-    ndiConfig["ndi"]["tcp"]["send"]["enable"] = true;
-  } else {
-    ndiConfig["ndi"]["tcp"]["send"]["enable"] = false;
-  }
+  ndiConfig["ndi"]["tcp"]["send"]["enable"] = send;
 
   if (!ndiConfig["ndi"]["tcp"].contains("recv")) {
     ndiConfig["ndi"]["tcp"]["recv"] = {{"enable", false}};
   }
 
-  if (recv){
-    ndiConfig["ndi"]["tcp"]["recv"]["enable"] = true;
-  } else {
-    ndiConfig["ndi"]["tcp"]["recv"]["enable"] = false;
-  }
+  ndiConfig["ndi"]["tcp"]["recv"]["enable"] = recv;
 
 }
 
@@ -71,21 +63,13 @@ void rudpSet(bool send, bool recv, json& ndiConfig) {
    ndiConfig["ndi"]["rudp"]["send"] = {{"enable", false}};
   }
 
-  if (send) {
-    ndiConfig["ndi"]["rudp"]["send"]["enable"] = true;
-  } else { 
-    ndiConfig["ndi"]["rudp"]["send"]["enable"] = false;
-  }
+  ndiConfig["ndi"]["rudp"]["send"]["enable"] = send;
 
   if (!ndiConfig["ndi"]["rudp"].contains("recv")) {
    ndiConfig["ndi"]["rudp"]["recv"] = {{"enable", false}};
   }
 
-  if (recv) {
-    ndiConfig["ndi"]["rudp"]["recv"]["enable"] = true;
-  } else { 
-    ndiConfig["ndi"]["rudp"]["recv"]["enable"] = false;
-  }
+  ndiConfig["ndi"]["rudp"]["recv"]["enable"] = recv;
 
 }
 
@@ -102,21 +86,13 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
    ndiConfig["ndi"]["unicast"]["send"] = {{"enable", false}};
   }
 
-  if (send) {
-    ndiConfig["ndi"]["unicast"]["send"]["enable"] = true;
-  } else { 
-    ndiConfig["ndi"]["unicast"]["send"]["enable"] = false;
-  }
+  ndiConfig["ndi"]["unicast"]["send"]["enable"] = send;
 
   if (!ndiConfig["ndi"]["unicast"].contains("recv")) {
    ndiConfig["ndi"]["unicast"]["recv"] = {{"enable", false}};
   }
 
-  if (recv) {
-    ndiConfig["ndi"]["unicast"]["recv"]["enable"] = true;
-  } else { 
-    ndiConfig["ndi"]["unicast"]["recv"]["enable"] = false;
-  }
+  ndiConfig["ndi"]["unicast"]["recv"]["enable"] = recv;
 
 }
 
@@ -128,5 +104,7 @@ void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
       {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
     };
   }
+  
+
 
 }
