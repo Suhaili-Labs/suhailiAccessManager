@@ -96,22 +96,25 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
 
 }
 
+void multicastGenConfig(json& ndiConfig){
+
+  ndiConfig["ndi"]["multicast"] = {
+  {"recv", {{"enable", false}, {"subnets", ""}}},
+  {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
+  };
+  
+}
+
+
 void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
 
-  if (!ndiConfig["ndi"].contains("multicast")) {
-    ndiConfig["ndi"]["multicast"] = {
-      {"recv", {{"enable", false}, {"subnets", ""}}},
-      {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
-    };
-  }
+  multicastGenConfig(ndiConfig);
 
   if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
   }
 
-
   ndiConfig["ndi"]["multicast"]["recv"]["enable"] = recv;
-
 // Change to vector? Maybe not
   ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = subnets;
 

@@ -36,8 +36,8 @@ int main(){
   tcpSet(true, true, ndiConfig);
   rudpSet(true, true, ndiConfig);
   unicastSet(true, true, ndiConfig);
-  machineName("ALEX MAC Test", ndiConfig);
-  multicastRecvSet(true, "", ndiConfig);
+  machineName("ALEX MAC", ndiConfig);
+  multicastRecvSet(false, "", ndiConfig);
 
   cout << "===========NDI CONFIG JSON===========" << endl;
   cout << ndiConfig.dump(2) << endl; 
