@@ -38,6 +38,7 @@ int main(){
   machineName("ALEX MAC", ndiConfig);
   multicastRecvSet(false, "", ndiConfig);
   multicastSendSet(true, "255.255.255.0", "255.0.0.", 3, ndiConfig);
+  groupsSet("Public, Alex", "Public, Test", ndiConfig);
 
   cout << "===========NDI CONFIG JSON===========" << endl;
   cout << ndiConfig.dump(2) << endl; 

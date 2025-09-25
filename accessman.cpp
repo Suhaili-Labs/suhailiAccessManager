@@ -137,3 +137,10 @@ void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json
   ndiConfig["ndi"]["multicast"]["send"]["ttl"] = ttl;
 
 }
+
+void groupsSet(string sendGroups, string recvGroup, json& ndiConfig) {
+  
+  if (!ndiConfig["ndi"].contains("groups")) {
+    ndiConfig["ndi"]["groups"] = {{"recv", "Public,"}, {"send", "Public,"}};
+  }
+}
