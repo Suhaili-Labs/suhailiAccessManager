@@ -21,7 +21,7 @@ void multicastGenConfig(json& ndiConfig){
 
   ndiConfig["ndi"]["multicast"] = {
   {"recv", {{"enable", false}, {"subnets", ""}}},
-  {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
+  {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}}}
   };
   
 }
@@ -108,15 +108,32 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
 void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
 
   if (!ndiConfig["ndi"].contains("multicast")){
-  multicastGenConfig(ndiConfig);
+    multicastGenConfig(ndiConfig);
   }
 
   if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
-   ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
+    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
   }
 
   ndiConfig["ndi"]["multicast"]["recv"]["enable"] = recv;
 // Change to vector? Maybe not
   ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = subnets;
+
+}
+
+void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json& ndiConfig) {
+  
+  if (!ndiConfig["ndi"].contains("multicast")){
+    multicastGenConfig(ndiConfig);
+  }
+  
+  if (!ndiConfig["ndi"]["multicast"].contains("send")) {
+    ndiConfig["ndi"]["multicast"]["send"] = {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}};
+  }
+
+  ndiConfig["ndi"]["multicast"]["send"]["enable"] = send;
+  ndiConfig["ndi"]["multicast"]["send"]["netmask"] = netmask;
+  ndiConfig["ndi"]["multicast"]["send"]["netprefix"] = netprefix;
+  ndiConfig["ndi"]["multicast"]["send"]["ttl"] = ttl;
 
 }

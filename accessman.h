@@ -16,6 +16,6 @@ void tcpSet(bool send, bool recv, json& ndiConfig);
 void rudpSet(bool send, bool recv, json& ndiConfig);
 void unicastSet(bool send, bool recv, json& ndiConfig);
 void multicastRecvSet(bool recv, string subnets, json& ndiConfig);
-
+void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json& ndiConfig);
 
 #endif
