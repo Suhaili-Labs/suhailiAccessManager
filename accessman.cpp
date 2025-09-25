@@ -17,6 +17,15 @@ string getHomeDir(){
   return home ? string(home) : string("");
 }
 
+void multicastGenConfig(json& ndiConfig){
+
+  ndiConfig["ndi"]["multicast"] = {
+  {"recv", {{"enable", false}, {"subnets", ""}}},
+  {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
+  };
+  
+}
+
 bool configExists(const string& filePath) {
   return std::filesystem::exists(filePath);
 }
@@ -96,19 +105,11 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
 
 }
 
-void multicastGenConfig(json& ndiConfig){
-
-  ndiConfig["ndi"]["multicast"] = {
-  {"recv", {{"enable", false}, {"subnets", ""}}},
-  {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 0}}}
-  };
-  
-}
-
-
 void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
 
+  if (!ndiConfig["ndi"].contains("multicast")){
   multicastGenConfig(ndiConfig);
+  }
 
   if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};

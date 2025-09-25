@@ -17,8 +17,7 @@ int main(){
 
   const string configPath = getHomeDir() + "/.ndi/ndi-config.v1.json";
 
-  cout << "NDI Config Dir: ";
-  cout << configPath << endl;
+  cout << "NDI Config Dir: " << configPath << endl;
   
   ifstream inputFile(configPath);
   if (!inputFile.is_open()) {
