@@ -23,7 +23,7 @@ int main(){
     cout << ".ndi Direcory does not exist. Creating." << endl;
   }
 // Make Function 
-  const string configPath = getHomeDir() + "/.ndi/ndi-config.v1.json";
+  const std::filesystem::path configPath = ndiDir / "ndi-config.v1.json";
 
   cout << "NDI Config Dir: " << configPath << endl;
   
