@@ -19,6 +19,8 @@ int main(){
 
   cout << "NDI Config Dir: " << configPath << endl;
   
+  // TEST CODE BELOW
+  
   ifstream inputFile(configPath);
   if (!inputFile.is_open()) {
     std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
@@ -27,7 +29,7 @@ int main(){
 
   inputFile >> ndiConfig;
   inputFile.close();
-
+  
   cout << "===========NDI CONFIG JSON===========" << endl;
   cout << ndiConfig.dump(2) << endl; 
   cout << "===========NDI CONFIG JSON===========" << endl;
@@ -39,6 +41,8 @@ int main(){
   multicastRecvSet(false, "", ndiConfig);
   multicastSendSet(true, "255.255.255.0", "255.0.0.", 3, ndiConfig);
   groupsSet("Public, Alex", "Public, Test", ndiConfig);
+  discoveryServerSet("10.159.0.21,10.4.5.3", ndiConfig);
+  discoveryIpsSet("10.11.12.13", ndiConfig);
 
   cout << "===========NDI CONFIG JSON===========" << endl;
   cout << ndiConfig.dump(2) << endl; 

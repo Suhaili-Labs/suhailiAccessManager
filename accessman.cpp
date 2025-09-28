@@ -138,9 +138,33 @@ void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json
 
 }
 
-void groupsSet(string sendGroups, string recvGroup, json& ndiConfig) {
+void groupsSet(string sendGroups, string recvGroups, json& ndiConfig) {
   
   if (!ndiConfig["ndi"].contains("groups")) {
     ndiConfig["ndi"]["groups"] = {{"recv", "Public,"}, {"send", "Public,"}};
   }
+  
+  ndiConfig["ndi"]["groups"]["recv"] = recvGroups;
+  ndiConfig["ndi"]["groups"]["send"] = sendGroups;
+
+}
+
+void discoveryServerSet(string discoveryServers, json& ndiConfig) {
+
+  if (!ndiConfig["ndi"].contains("networks")) {
+    ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
+  }
+
+  ndiConfig["ndi"]["networks"]["discovery"] = discoveryServers;
+
+}
+
+void discoveryIpsSet(string ips, json& ndiConfig) {
+
+  if (!ndiConfig["ndi"].contains("networks")) {
+    ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
+  }
+ 
+  ndiConfig["ndi"]["networks"]["ips"] = ips;
+
 }
