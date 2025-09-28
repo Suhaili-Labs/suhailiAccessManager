@@ -13,8 +13,16 @@ using std::ofstream;
 
 int main(){
 
-  json ndiConfig;
-
+  json ndiConfig; 
+  
+// Make Functionm?
+  const std::filesystem::path ndiDir = std::filesystem::path(getHomeDir()) / ".ndi";
+  
+  if (!std::filesystem::exists(ndiDir)) {
+    std::filesystem::create_directory(ndiDir);
+    cout << ".ndi Direcory does not exist. Creating." << endl;
+  }
+// Make Function 
   const string configPath = getHomeDir() + "/.ndi/ndi-config.v1.json";
 
   cout << "NDI Config Dir: " << configPath << endl;
@@ -24,11 +32,12 @@ int main(){
   ifstream inputFile(configPath);
   if (!inputFile.is_open()) {
     std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
-    return 1;
+    cout << "New ndi-config.v1.json will be created." << endl;
+  } else {
+    inputFile >> ndiConfig;
+    inputFile.close();
   }
 
-  inputFile >> ndiConfig;
-  inputFile.close();
   
   cout << "===========NDI CONFIG JSON===========" << endl;
   cout << ndiConfig.dump(2) << endl; 
