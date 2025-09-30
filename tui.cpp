@@ -10,7 +10,6 @@
 #include <ftxui/component/screen_interactive.hpp>  // for ScreenInteractive
 
 
-
 using std::cout;
 using nlohmann::json;
 using std::string;
@@ -20,10 +19,6 @@ using std::ofstream;
 using std::vector;
 using namespace ftxui;
 
-
-void testFunc() {
-    cout << "Button was pressed!" << endl;
-}
 
 int main(){
 
@@ -59,14 +54,19 @@ int main(){
 
 // TUI BELOW
 
-  auto screen = ScreenInteractive::Fullscreen();
+  string titleL1 = "░█▀█░█▀▀░█▀▀░█▀▀░█▀▀░█▀▀░░░█▄█░█▀█░█▀█░█▀█░█▀▀░█▀▀░█▀▄";
+  string titleL2 = "░█▀█░█░░░█░░░█▀▀░▀▀█░▀▀█░░░█░█░█▀█░█░█░█▀█░█░█░█▀▀░█▀▄";
+  string titleL3 = "░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░░░▀░▀░▀░▀░▀░▀░▀░▀░▀▀▀░▀▀▀░▀░▀";
 
+  auto screen = ScreenInteractive::Fullscreen();
   auto exitButton = Button("Exit", screen.ExitLoopClosure());
   
   vector<string> toggleEntries = {
     "  Disable  ",
     "  Enable  ",
   };
+
+  int topRowTab = 0;
 
   int tcpSendSelected = 0;
   int tcpRecvSelected = 0;
@@ -88,7 +88,7 @@ int main(){
     rudpRecvToggle
   });
 
-  auto topRowContainer = Container::Horizontal({
+  auto topRowContainer = Container::Vertical({
     tcpContainer,
     rudpContainer
   });
@@ -98,9 +98,14 @@ int main(){
     exitButton
   });
 
+  
   auto renderer = Renderer(mainContainer, [&] {
     auto layout = vbox({
-      text("Suhaili NDI Access Manager for Linux") | bold | center,
+      text(titleL1) | center,
+      text(titleL2) | center,
+      text(titleL3) | center,
+      text(""),
+      text("TUI NDI Access Manager for Linux") | bold | center,
       
       separator(),
 
@@ -128,7 +133,7 @@ int main(){
       
       separator(),
 
-      text("By Suhaili AV | NDI® is a registered trademark of Vizrt NDI AB") | dim | center,
+      text("By Alexander Ujvarosy | NDI® is a registered trademark of Vizrt NDI AB") | dim | center,
 
     });
     return layout;  
