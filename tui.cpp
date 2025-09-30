@@ -135,7 +135,8 @@ int main(){
 
 
   screen.Loop(renderer);
-
+  
+  // End TUI
 
   ofstream outputFile(configPath);
   if (!outputFile.is_open()) {
