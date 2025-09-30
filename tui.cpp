@@ -29,14 +29,14 @@ int main(){
 
   json ndiConfig; 
   
-// Make Functionm?
+// Make Function????
   const std::filesystem::path ndiDir = std::filesystem::path(getHomeDir()) / ".ndi";
   
   if (!std::filesystem::exists(ndiDir)) {
     std::filesystem::create_directory(ndiDir);
     cout << ".ndi Direcory does not exist. Creating." << endl;
   }
-// Make Function 
+// Make Function????
   const std::filesystem::path configPath = ndiDir / "ndi-config.v1.json";
 
   cout << "NDI Config Dir: " << configPath << endl;
@@ -80,22 +80,22 @@ int main(){
 
   auto tcpContainer = Container::Vertical({ 
     tcpSendToggle,
-    tcpRecvToggle,
+    tcpRecvToggle
   });
 
   auto rudpContainer = Container::Vertical({ 
     rudpSendToggle,
-    rudpRecvToggle,
+    rudpRecvToggle
   });
 
   auto topRowContainer = Container::Horizontal({
     tcpContainer,
-    rudpContainer,
+    rudpContainer
   });
 
   auto mainContainer = Container::Vertical({
     topRowContainer,
-    exitButton,
+    exitButton
   });
 
   auto renderer = Renderer(mainContainer, [&] {
@@ -118,7 +118,8 @@ int main(){
           separator(), 
           hbox(text("  Send:  ") ,separator(),rudpSendToggle->Render()), 
           hbox(text("  Recv:  ") ,separator(),rudpRecvToggle->Render())
-        ) | center
+        ) | center,
+        separator()
       ) | center,
 
       separator(),
