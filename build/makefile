@@ -7,7 +7,7 @@ CXX = g++
 CXXFLAGS = -static
 
 # Source files
-SOURCES = tui.cpp accessman.cpp
+SOURCES = ../tui.cpp ../accessman.cpp
 
 # Object files
 OBJECTS = $(SOURCES:.cpp=.o)
