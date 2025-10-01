@@ -20,5 +20,6 @@ void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json
 void groupsSet(string sendGroups, string recvGroup, json& ndiConfig);
 void discoveryServerSet(string discoveryServers, json& ndiConfig);
 void discoveryIpsSet(string ips, json& ndiConfig);
+void generateMissingConfig(json& ndiConfig);
 
 #endif

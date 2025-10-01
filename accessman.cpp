@@ -168,3 +168,91 @@ void discoveryIpsSet(string ips, json& ndiConfig) {
   ndiConfig["ndi"]["networks"]["ips"] = ips;
 
 }
+
+void generateMissingConfig(json& ndiConfig) {
+
+  if (!ndiConfig["ndi"].contains("networks")) {
+    ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
+  }
+
+  if (!ndiConfig["ndi"]["networks"].contains("discovery")) {
+    ndiConfig["ndi"]["networks"]["discovery"] = "";
+  }
+
+  if (!ndiConfig["ndi"]["networks"].contains("ips")) {
+    ndiConfig["ndi"]["networks"]["ips"] = "";
+  }
+
+  if (!ndiConfig["ndi"].contains("groups")) {
+    ndiConfig["ndi"]["groups"] = {{"recv", "Public,"}, {"send", "Public,"}};
+  }
+
+  if (!ndiConfig["ndi"]["groups"].contains("recv")) {
+    ndiConfig["ndi"]["groups"]["recv"] = "Public,";
+  }
+
+  if (!ndiConfig["ndi"]["groups"].contains("send")) {
+    ndiConfig["ndi"]["groups"]["send"] = "Public,";
+  }
+
+  if (!ndiConfig["ndi"].contains("machineName")){
+    ndiConfig["ndi"]["machineName"] = "";
+  }
+
+  if (!ndiConfig["ndi"].contains("multicast")){
+    multicastGenConfig(ndiConfig);
+  }
+  
+  if (!ndiConfig["ndi"]["multicast"].contains("send")) {
+    ndiConfig["ndi"]["multicast"]["send"] = {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}};
+  }
+
+  if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
+    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
+  }
+
+  if (!ndiConfig["ndi"].contains("unicast")) {
+    ndiConfig["ndi"]["unicast"] = {
+      {"recv", {{"enable", false}}},
+      {"send", {{"enable", false}}}
+    };
+  }
+
+  if (!ndiConfig["ndi"]["unicast"].contains("send")) {
+   ndiConfig["ndi"]["unicast"]["send"] = {{"enable", false}};
+  }
+
+  if (!ndiConfig["ndi"]["unicast"].contains("recv")) {
+   ndiConfig["ndi"]["unicast"]["recv"] = {{"enable", false}};
+  }
+
+  if (!ndiConfig["ndi"].contains("rudp")) {
+    ndiConfig["ndi"]["rudp"] = {
+      {"recv", {{"enable", false}}},
+      {"send", {{"enable", false}}}
+    };
+  }
+
+  if (!ndiConfig["ndi"]["rudp"].contains("send")) {
+   ndiConfig["ndi"]["rudp"]["send"] = {{"enable", false}};
+  }
+
+  if (!ndiConfig["ndi"]["rudp"].contains("recv")) {
+   ndiConfig["ndi"]["rudp"]["recv"] = {{"enable", false}};
+  }
+
+  if (!ndiConfig["ndi"].contains("tcp")) {
+    ndiConfig["ndi"]["tcp"] = {
+      {"recv", {{"enable", false}}},
+      {"send", {{"enable", false}}}
+    }; 
+  }
+  
+  if (!ndiConfig["ndi"]["tcp"].contains("send")) {
+    ndiConfig["ndi"]["tcp"]["send"] = {{"enable", false}};
+  }
+
+  if (!ndiConfig["ndi"]["tcp"].contains("recv")) {
+    ndiConfig["ndi"]["tcp"]["recv"] = {{"enable", false}};
+  }
+}

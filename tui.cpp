@@ -53,6 +53,7 @@ int main(){
  // cout << "===========NDI CONFIG JSON===========" << endl;
   
 
+  generateMissingConfig(ndiConfig);
 
 // TUI BELOW
 
