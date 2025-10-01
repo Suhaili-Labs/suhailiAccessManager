@@ -86,28 +86,28 @@ int main(){
   Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
   Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
 
-  auto tcpContainer = Container::Vertical({ 
+  Component tcpContainer = Container::Vertical({ 
     tcpSendToggle,
     tcpRecvToggle
   });
 
-  auto rudpContainer = Container::Vertical({ 
+  Component rudpContainer = Container::Vertical({ 
     rudpSendToggle,
     rudpRecvToggle
   });
 
-  auto unicastContainer = Container::Vertical({
+  Component unicastContainer = Container::Vertical({
     unicastSendToggle,
     unicastRecvToggle
   });
 
-  auto topRowContainer = Container::Vertical({
+  Component topRowContainer = Container::Vertical({
     tcpContainer,
     rudpContainer,
     unicastContainer
   });
 
-  auto mainContainer = Container::Vertical({
+  Component mainContainer = Container::Vertical({
     topRowContainer,
     exitButton
   });
@@ -121,8 +121,8 @@ int main(){
       text(""),
       text("TUI NDI Access Manager for Linux") | bold | center,
  
-
-      border(text("Send/Recv Modes") | center),
+      hbox(
+      border(text("   Send/Recv Modes   ") | center)) | center,
 
       hbox(
         border(vbox(
@@ -143,7 +143,7 @@ int main(){
           hbox(text("  Send:  ") ,separator(),unicastSendToggle->Render()), 
           hbox(text("  Recv:  ") ,separator(),unicastRecvToggle->Render())
         ) | center
-      ) | center),
+      ) | center) | center,
 
       separator(),
 
