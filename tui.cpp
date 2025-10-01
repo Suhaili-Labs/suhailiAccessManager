@@ -36,7 +36,9 @@ int main(){
 
   cout << "NDI Config Dir: " << configPath << endl;
   
-  
+// Need to add a function to generate missing settings if they do not exist
+// in the ndi-config, or program will crash if they are not present in the config.
+
   ifstream inputFile(configPath);
   if (!inputFile.is_open()) {
     std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
@@ -46,9 +48,9 @@ int main(){
     inputFile.close();
   }
 
-  cout << "===========NDI CONFIG JSON===========" << endl;
-  cout << ndiConfig.dump(2) << endl; 
-  cout << "===========NDI CONFIG JSON===========" << endl;
+ // cout << "===========NDI CONFIG JSON===========" << endl;
+ // cout << ndiConfig.dump(2) << endl; 
+ // cout << "===========NDI CONFIG JSON===========" << endl;
   
 
 
@@ -63,20 +65,26 @@ int main(){
   
   vector<string> toggleEntries = {
     "  Disable  ",
-    "  Enable  ",
+    "  Enable  "
   };
 
-  int topRowTab = 0;
-
-  int tcpSendSelected = 0;
-  int tcpRecvSelected = 0;
+  int tcpSendSelected = ndiConfig["ndi"]["tcp"]["send"]["enable"];
+  int tcpRecvSelected = ndiConfig["ndi"]["tcp"]["recv"]["enable"];
   int rudpSendSelected = 0;
   int rudpRecvSelected = 0;
+  int unicastSendSelected = 0;
+  int unicastRecvSelected = 0;
+  int multicastSendSelected = 0;
+  int multicastRecvSelected = 0;
 
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
   Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
   Component rudpSendToggle = Toggle(&toggleEntries, &rudpSendSelected);
   Component rudpRecvToggle = Toggle(&toggleEntries, &rudpRecvSelected);
+  Component unicastSendToggle = Toggle(&toggleEntries, &unicastSendSelected);
+  Component unicastRecvToggle = Toggle(&toggleEntries, &unicastRecvSelected);
+  Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
+  Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
 
   auto tcpContainer = Container::Vertical({ 
     tcpSendToggle,
@@ -88,9 +96,15 @@ int main(){
     rudpRecvToggle
   });
 
+  auto unicastContainer = Container::Vertical({
+    unicastSendToggle,
+    unicastRecvToggle
+  });
+
   auto topRowContainer = Container::Vertical({
     tcpContainer,
-    rudpContainer
+    rudpContainer,
+    unicastContainer
   });
 
   auto mainContainer = Container::Vertical({
@@ -106,26 +120,30 @@ int main(){
       text(titleL3) | center,
       text(""),
       text("TUI NDI Access Manager for Linux") | bold | center,
-      
-      separator(),
+ 
+
+      border(text("Send/Recv Modes") | center),
 
       hbox(
-        separator(),
-        vbox(
-          text("TCP") | bold | center, 
-          separator(), 
+        border(vbox(
+          text("TCP") | bold | center,
+          separator(),
           hbox(text("  Send:  ") ,separator(),tcpSendToggle->Render()), 
           hbox(text("  Recv:  ") ,separator(),tcpRecvToggle->Render())
-        ) | center,
-        separator(),
-        vbox(
+        ) | center),
+        border(vbox(
           text("RUDP") | bold | center, 
           separator(), 
           hbox(text("  Send:  ") ,separator(),rudpSendToggle->Render()), 
           hbox(text("  Recv:  ") ,separator(),rudpRecvToggle->Render())
-        ) | center,
-        separator()
-      ) | center,
+        ) | center),
+        border(vbox(
+          text("Unicast") | bold | center, 
+          separator(), 
+          hbox(text("  Send:  ") ,separator(),unicastSendToggle->Render()), 
+          hbox(text("  Recv:  ") ,separator(),unicastRecvToggle->Render())
+        ) | center
+      ) | center),
 
       separator(),
 
@@ -143,6 +161,9 @@ int main(){
   screen.Loop(renderer);
   
   // End TUI
+  
+  tcpSet(tcpSendSelected, tcpRecvSelected, ndiConfig);
+
 
   ofstream outputFile(configPath);
   if (!outputFile.is_open()) {
