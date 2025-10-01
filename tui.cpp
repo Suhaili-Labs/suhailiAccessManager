@@ -76,6 +76,10 @@ int main(){
   int unicastRecvSelected = 0;
   int multicastSendSelected = 0;
   int multicastRecvSelected = 0;
+  
+  string sendGroups = ndiConfig["ndi"]["groups"]["send"];
+  string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
+  string multicastSubnets;
 
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
   Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
@@ -85,6 +89,8 @@ int main(){
   Component unicastRecvToggle = Toggle(&toggleEntries, &unicastRecvSelected);
   Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
   Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
+  Component sendGroupInput = Input(&sendGroups, "Public, Group1, Group2");
+  Component recvGroupInput = Input(&recvGroups, "Public, Group1, Group2");
 
   Component tcpContainer = Container::Vertical({ 
     tcpSendToggle,
@@ -108,6 +114,8 @@ int main(){
   });
 
   Component mainContainer = Container::Vertical({
+    sendGroupInput,
+    recvGroupInput,
     topRowContainer,
     exitButton
   });
@@ -120,7 +128,14 @@ int main(){
       text(titleL3) | center,
       text(""),
       text("TUI NDI Access Manager for Linux") | bold | center,
- 
+      
+      hbox(border(vbox(
+        text("                Groups                ") | bold | center,
+        separator(),
+        hbox(text(" Send "), separator(), sendGroupInput->Render()),
+        hbox(text(" Recv "), separator(), recvGroupInput->Render())
+      ) | center)) | center,
+      
       hbox(
       border(text("   Send/Recv Modes   ") | center)) | center,
 
@@ -128,20 +143,20 @@ int main(){
         border(vbox(
           text("TCP") | bold | center,
           separator(),
-          hbox(text("  Send:  ") ,separator(),tcpSendToggle->Render()), 
-          hbox(text("  Recv:  ") ,separator(),tcpRecvToggle->Render())
+          hbox(text(" Send ") ,separator(),tcpSendToggle->Render()), 
+          hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render())
         ) | center),
         border(vbox(
           text("RUDP") | bold | center, 
           separator(), 
-          hbox(text("  Send:  ") ,separator(),rudpSendToggle->Render()), 
-          hbox(text("  Recv:  ") ,separator(),rudpRecvToggle->Render())
+          hbox(text(" Send ") ,separator(),rudpSendToggle->Render()), 
+          hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render())
         ) | center),
         border(vbox(
           text("Unicast") | bold | center, 
           separator(), 
-          hbox(text("  Send:  ") ,separator(),unicastSendToggle->Render()), 
-          hbox(text("  Recv:  ") ,separator(),unicastRecvToggle->Render())
+          hbox(text(" Send ") ,separator(),unicastSendToggle->Render()), 
+          hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render())
         ) | center
       ) | center) | center,
 
