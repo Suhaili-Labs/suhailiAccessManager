@@ -170,7 +170,9 @@ void discoveryIpsSet(string ips, json& ndiConfig) {
 }
 
 void generateMissingConfig(json& ndiConfig) {
-
+  
+  // I'm sure there is a better way to do this, but I'm unsure, will need to come back to this.
+  
   if (!ndiConfig["ndi"].contains("networks")) {
     ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
   }

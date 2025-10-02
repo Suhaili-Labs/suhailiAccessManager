@@ -80,7 +80,11 @@ int main(){
   
   string sendGroups = ndiConfig["ndi"]["groups"]["send"];
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
+  string discoveryServers = ndiConfig["ndi"]["networks"]["discovery"];
+  string ips = ndiConfig["ndi"]["networks"]["ips"];
+  
   string multicastSubnets;
+
 
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
   Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
@@ -92,6 +96,8 @@ int main(){
   Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
   Component sendGroupInput = Input(&sendGroups, "Public, Group1, Group2");
   Component recvGroupInput = Input(&recvGroups, "Public, Group1, Group2");
+  Component discoveryServersInput = Input(&discoveryServers, "192.168.1.21,192.168.1.22");
+  Component ipsInput = Input(&ips, "192.168.1.1,192.168.1.2");
 
   Component tcpContainer = Container::Vertical({ 
     tcpSendToggle,
@@ -108,16 +114,18 @@ int main(){
     unicastRecvToggle
   });
 
-  Component topRowContainer = Container::Vertical({
+  Component modesRowContainer = Container::Vertical({
     tcpContainer,
     rudpContainer,
     unicastContainer
   });
 
-  Component mainContainer = Container::Vertical({
+  Component mainContainer = Container::Vertical({ 
+    discoveryServersInput,
+    ipsInput,
     sendGroupInput,
     recvGroupInput,
-    topRowContainer,
+    modesRowContainer,
     exitButton
   });
 
@@ -130,16 +138,24 @@ int main(){
       text(""),
       text("TUI NDI Access Manager for Linux") | bold | center,
       
-      hbox(border(vbox(
-        text("                Groups                ") | bold | center,
-        separator(),
-        hbox(text(" Send "), separator(), sendGroupInput->Render()),
-        hbox(text(" Recv "), separator(), recvGroupInput->Render())
-      ) | center)) | center,
-      
-      hbox(
-      border(text("   Send/Recv Modes   ") | center)) | center,
 
+      hbox(
+        border(vbox(
+          text("                   Network                  ") | bold | center,
+          separator(),
+          hbox(text(" Discovery "), separator(), discoveryServersInput->Render()),
+          hbox(text("    IPs    "), separator(), ipsInput->Render())
+          ) | center
+        ),
+      border(vbox(
+          text("                    Groups                   ") | bold | center,
+          separator(),
+          hbox(text(" Send "), separator(), sendGroupInput->Render()),
+          hbox(text(" Recv "), separator(), recvGroupInput->Render())
+          ) | center
+        )
+      ) | center,
+      
       hbox(
         border(vbox(
           text("TCP") | bold | center,
@@ -148,7 +164,7 @@ int main(){
           hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render())
         ) | center),
         border(vbox(
-          text("RUDP") | bold | center, 
+          text("RUDP") | bold | center,
           separator(), 
           hbox(text(" Send ") ,separator(),rudpSendToggle->Render()), 
           hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render())
