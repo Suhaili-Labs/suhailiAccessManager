@@ -71,10 +71,10 @@ int main(){
 
   int tcpSendSelected = ndiConfig["ndi"]["tcp"]["send"]["enable"];
   int tcpRecvSelected = ndiConfig["ndi"]["tcp"]["recv"]["enable"];
-  int rudpSendSelected = 0;
-  int rudpRecvSelected = 0;
-  int unicastSendSelected = 0;
-  int unicastRecvSelected = 0;
+  int rudpSendSelected = ndiConfig["ndi"]["rudp"]["send"]["enable"];
+  int rudpRecvSelected = ndiConfig["ndi"]["rudp"]["recv"]["enable"];
+  int unicastSendSelected = ndiConfig["ndi"]["unicast"]["send"]["enable"];
+  int unicastRecvSelected = ndiConfig["ndi"]["unicast"]["recv"]["enable"];
   int multicastSendSelected = 0;
   int multicastRecvSelected = 0;
   
@@ -193,8 +193,14 @@ int main(){
   screen.Loop(renderer);
   
   // End TUI
-  
+
+  discoveryServerSet(discoveryServers, ndiConfig);
+  discoveryIpsSet(ips, ndiConfig);
+  groupsSet(sendGroups, recvGroups, ndiConfig);
   tcpSet(tcpSendSelected, tcpRecvSelected, ndiConfig);
+  rudpSet(rudpSendSelected, rudpRecvSelected, ndiConfig);
+  unicastSet(unicastSendSelected,unicastRecvSelected, ndiConfig);
+
 
 
   ofstream outputFile(configPath);
