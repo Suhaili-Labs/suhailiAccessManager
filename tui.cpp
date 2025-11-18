@@ -82,7 +82,7 @@ int main(){
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
   string discoveryServers = ndiConfig["ndi"]["networks"]["discovery"];
   string ips = ndiConfig["ndi"]["networks"]["ips"];
-  
+  string machineName = ndiConfig["ndi"]["machineName"];  
   string multicastSubnets;
 
 
@@ -98,6 +98,7 @@ int main(){
   Component recvGroupInput = Input(&recvGroups, "Public, Group1, Group2");
   Component discoveryServersInput = Input(&discoveryServers, "192.168.1.21,192.168.1.22");
   Component ipsInput = Input(&ips, "192.168.1.1,192.168.1.2");
+  Component machineNameInput = Input(&machineName, "My Machine Name");
 
   Component tcpContainer = Container::Vertical({ 
     tcpSendToggle,
@@ -121,6 +122,7 @@ int main(){
   });
 
   Component mainContainer = Container::Vertical({ 
+    machineNameInput,
     discoveryServersInput,
     ipsInput,
     sendGroupInput,
@@ -137,7 +139,15 @@ int main(){
       text(titleL3) | center,
       text(""),
       text("TUI NDI Access Manager for Linux") | bold | center,
-      
+  
+      hbox(
+        border(vbox(
+          text("    Machine Name    ") | bold | center,
+          separator(),
+          machineNameInput->Render()
+          ) | center
+        )
+      ) | center,
 
       hbox(
         border(vbox(
@@ -200,7 +210,7 @@ int main(){
   tcpSet(tcpSendSelected, tcpRecvSelected, ndiConfig);
   rudpSet(rudpSendSelected, rudpRecvSelected, ndiConfig);
   unicastSet(unicastSendSelected,unicastRecvSelected, ndiConfig);
-
+  machineNameSet(machineName, ndiConfig);
 
 
   ofstream outputFile(configPath);

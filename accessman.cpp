@@ -30,7 +30,7 @@ bool configExists(const string& filePath) {
   return std::filesystem::exists(filePath);
 }
 
-void machineName(string name, json& ndiConfig) {
+void machineNameSet(string name, json& ndiConfig) {
   
   ndiConfig["ndi"]["machineName"] = name;
 

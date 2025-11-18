@@ -11,7 +11,7 @@ using nlohmann::json;
 
 string getHomeDir();
 bool configExists(const string& filePath);
-void machineName(string name, json& ndiConfig);
+void machineNameSet(string name, json& ndiConfig);
 void tcpSet(bool send, bool recv, json& ndiConfig);
 void rudpSet(bool send, bool recv, json& ndiConfig);
 void unicastSet(bool send, bool recv, json& ndiConfig);
