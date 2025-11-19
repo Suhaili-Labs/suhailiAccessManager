@@ -82,7 +82,7 @@ int main(){
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
   string discoveryServers = ndiConfig["ndi"]["networks"]["discovery"];
   string ips = ndiConfig["ndi"]["networks"]["ips"];
-  string machineName = ndiConfig["ndi"]["machineName"];  
+  string machineName = ndiConfig["ndi"]["machinename"];  
   string multicastSubnets;
 
 

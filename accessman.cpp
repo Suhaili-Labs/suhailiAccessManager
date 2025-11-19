@@ -32,7 +32,7 @@ bool configExists(const string& filePath) {
 
 void machineNameSet(string name, json& ndiConfig) {
   
-  ndiConfig["ndi"]["machineName"] = name;
+  ndiConfig["ndi"]["machinename"] = name;
 
 }
 
@@ -197,8 +197,8 @@ void generateMissingConfig(json& ndiConfig) {
     ndiConfig["ndi"]["groups"]["send"] = "Public,";
   }
 
-  if (!ndiConfig["ndi"].contains("machineName")){
-    ndiConfig["ndi"]["machineName"] = "";
+  if (!ndiConfig["ndi"].contains("machinename")){
+    ndiConfig["ndi"]["machinename"] = "";
   }
 
   if (!ndiConfig["ndi"].contains("multicast")){
