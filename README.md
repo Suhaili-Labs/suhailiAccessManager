@@ -7,5 +7,7 @@ The goal of the project is to allow for quick and easy modification of these con
 
 Compile with C++ 17 or above.
 
+TUI included
+
 NDI Config JSON is documented here:
 https://docs.ndi.video/all/developing-with-ndi/sdk/configuration-files
