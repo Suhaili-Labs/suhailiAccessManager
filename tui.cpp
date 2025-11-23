@@ -48,11 +48,7 @@ int main(){
     inputFile.close();
   }
 
- // cout << "===========NDI CONFIG JSON===========" << endl;
- // cout << ndiConfig.dump(2) << endl; 
- // cout << "===========NDI CONFIG JSON===========" << endl;
-  
-
+// Generate anny "missing" config items so they can be accessed without errors
   generateMissingConfig(ndiConfig);
 
 // TUI BELOW
@@ -75,15 +71,18 @@ int main(){
   int rudpRecvSelected = ndiConfig["ndi"]["rudp"]["recv"]["enable"];
   int unicastSendSelected = ndiConfig["ndi"]["unicast"]["send"]["enable"];
   int unicastRecvSelected = ndiConfig["ndi"]["unicast"]["recv"]["enable"];
-  int multicastSendSelected = 0;
-  int multicastRecvSelected = 0;
+  int multicastSendSelected = ndiConfig["ndi"]["multicast"]["send"]["enable"];
+  int multicastRecvSelected = ndiConfig["ndi"]["multicast"]["recv"]["enable"];
   
   string sendGroups = ndiConfig["ndi"]["groups"]["send"];
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
   string discoveryServers = ndiConfig["ndi"]["networks"]["discovery"];
   string ips = ndiConfig["ndi"]["networks"]["ips"];
   string machineName = ndiConfig["ndi"]["machinename"];  
-  string multicastSubnets;
+  string multicastSendNetmask = ndiConfig["ndi"]["multicast"]["send"]["netmask"];
+  string multicastSendNetprefix = ndiConfig["ndi"]["multicast"]["send"]["netprefix"];
+  
+  int multicastSendTTL = ndiConfig["ndi"]["multicast"]["send"]["ttl"];
 
 
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
@@ -94,11 +93,14 @@ int main(){
   Component unicastRecvToggle = Toggle(&toggleEntries, &unicastRecvSelected);
   Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
   Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
+  
   Component sendGroupInput = Input(&sendGroups, "Public, Group1, Group2");
   Component recvGroupInput = Input(&recvGroups, "Public, Group1, Group2");
   Component discoveryServersInput = Input(&discoveryServers, "192.168.1.21,192.168.1.22");
   Component ipsInput = Input(&ips, "192.168.1.1,192.168.1.2");
   Component machineNameInput = Input(&machineName, "My Machine Name");
+  Component multicastSendNetmaskInput =  Input(&multicastSendNetmask, "255.255.0.0");
+  Component multicastSendNetprefixInput = Input(&multicastSendNetprefix, "239.255.0.0");
 
   Component tcpContainer = Container::Vertical({ 
     tcpSendToggle,
@@ -121,6 +123,11 @@ int main(){
     unicastContainer
   });
 
+  Component multicastContainer = Container::Vertical({
+    multicastSendToggle,
+    multicastRecvToggle
+  });
+
   Component mainContainer = Container::Vertical({ 
     machineNameInput,
     discoveryServersInput,
@@ -128,6 +135,7 @@ int main(){
     sendGroupInput,
     recvGroupInput,
     modesRowContainer,
+    multicastContainer,
     exitButton
   });
 
@@ -185,7 +193,19 @@ int main(){
           hbox(text(" Send ") ,separator(),unicastSendToggle->Render()), 
           hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render())
         ) | center
-      ) | center) | center,
+      ) | center ) | center,
+
+      hbox(
+        border(
+          vbox(
+            text("Multicast") | bold | center,
+            separator(),
+            vbox(
+            hbox(text(" Send ") | bold | center, separator(),multicastSendToggle->Render()),
+            hbox(text(" Recv ") | bold | center, separator(),multicastRecvToggle->Render())
+              )
+            )
+          )) | center,
 
       separator(),
 
@@ -211,7 +231,8 @@ int main(){
   rudpSet(rudpSendSelected, rudpRecvSelected, ndiConfig);
   unicastSet(unicastSendSelected,unicastRecvSelected, ndiConfig);
   machineNameSet(machineName, ndiConfig);
-
+  multicastSendSet(multicastSendSelected, multicastSendNetmask, multicastSendNetprefix, multicastSendTTL, ndiConfig);
+  multicastRecvSet(multicastRecvSelected, ndiConfig);
 
   ofstream outputFile(configPath);
   if (!outputFile.is_open()) {

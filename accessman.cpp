@@ -17,13 +17,16 @@ string getHomeDir(){
   return home ? string(home) : string("");
 }
 
-void multicastGenConfig(json& ndiConfig){
-
-  ndiConfig["ndi"]["multicast"] = {
-  {"recv", {{"enable", false}, {"subnets", ""}}},
-  {"send", {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}}}
-  };
-  
+void multicastGenConfig(json& ndiConfig) {
+    ndiConfig["ndi"]["multicast"] = {
+        {"recv", {{"enable", false}}},
+        {"send", {
+            {"enable", false}, 
+            {"netmask", "255.255.0.0"}, 
+            {"netprefix", "239.255.0.0"}, 
+            {"ttl", 1}
+        }}
+    };
 }
 
 bool configExists(const string& filePath) {
@@ -105,19 +108,17 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
 
 }
 
-void multicastRecvSet(bool recv, string subnets, json& ndiConfig) {
+void multicastRecvSet(bool recv, json& ndiConfig) {
 
   if (!ndiConfig["ndi"].contains("multicast")){
     multicastGenConfig(ndiConfig);
   }
 
   if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
-    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
+    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}};
   }
 
   ndiConfig["ndi"]["multicast"]["recv"]["enable"] = recv;
-// Change to vector? Maybe not
-  ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = subnets;
 
 }
 
@@ -128,7 +129,7 @@ void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json
   }
   
   if (!ndiConfig["ndi"]["multicast"].contains("send")) {
-    ndiConfig["ndi"]["multicast"]["send"] = {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}};
+    ndiConfig["ndi"]["multicast"]["send"] = {{"enable", false}, {"netmask", "255.255.0.0"}, {"netprefix", "239.255.0.0"}, {"ttl", 1}};
   }
 
   ndiConfig["ndi"]["multicast"]["send"]["enable"] = send;
@@ -172,7 +173,7 @@ void discoveryIpsSet(string ips, json& ndiConfig) {
 void generateMissingConfig(json& ndiConfig) {
   
   // I'm sure there is a better way to do this, but I'm unsure, will need to come back to this.
-  
+
   if (!ndiConfig["ndi"].contains("networks")) {
     ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
   }
@@ -210,7 +211,7 @@ void generateMissingConfig(json& ndiConfig) {
   }
 
   if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
-    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}, {"subnets", ""}};
+    ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}};
   }
 
   if (!ndiConfig["ndi"].contains("unicast")) {
@@ -257,4 +258,5 @@ void generateMissingConfig(json& ndiConfig) {
   if (!ndiConfig["ndi"]["tcp"].contains("recv")) {
     ndiConfig["ndi"]["tcp"]["recv"] = {{"enable", false}};
   }
+  
 }
