@@ -65,6 +65,8 @@ int main(){
     "  Enable  "
   };
 
+  vector<string> ttlEntries = {" 0 ", " 1 ", " 2 ", " 3 ", " 4 ", " 5 "};
+
   int tcpSendSelected = ndiConfig["ndi"]["tcp"]["send"]["enable"];
   int tcpRecvSelected = ndiConfig["ndi"]["tcp"]["recv"]["enable"];
   int rudpSendSelected = ndiConfig["ndi"]["rudp"]["send"]["enable"];
@@ -72,8 +74,9 @@ int main(){
   int unicastSendSelected = ndiConfig["ndi"]["unicast"]["send"]["enable"];
   int unicastRecvSelected = ndiConfig["ndi"]["unicast"]["recv"]["enable"];
   int multicastSendSelected = ndiConfig["ndi"]["multicast"]["send"]["enable"];
-  int multicastRecvSelected = ndiConfig["ndi"]["multicast"]["recv"]["enable"];
-  
+  int multicastRecvSelected = ndiConfig["ndi"]["multicast"]["recv"]["enable"]; 
+  int multicastSendTTL = ndiConfig["ndi"]["multicast"]["send"]["ttl"];
+
   string sendGroups = ndiConfig["ndi"]["groups"]["send"];
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
   string discoveryServers = ndiConfig["ndi"]["networks"]["discovery"];
@@ -82,9 +85,6 @@ int main(){
   string multicastSendNetmask = ndiConfig["ndi"]["multicast"]["send"]["netmask"];
   string multicastSendNetprefix = ndiConfig["ndi"]["multicast"]["send"]["netprefix"];
   
-  int multicastSendTTL = ndiConfig["ndi"]["multicast"]["send"]["ttl"];
-
-
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
   Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
   Component rudpSendToggle = Toggle(&toggleEntries, &rudpSendSelected);
@@ -93,14 +93,15 @@ int main(){
   Component unicastRecvToggle = Toggle(&toggleEntries, &unicastRecvSelected);
   Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
   Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
+  Component multicastSendTTLToggle = Toggle(&ttlEntries, &multicastSendTTL);
   
   Component sendGroupInput = Input(&sendGroups, "Public, Group1, Group2");
   Component recvGroupInput = Input(&recvGroups, "Public, Group1, Group2");
   Component discoveryServersInput = Input(&discoveryServers, "192.168.1.21,192.168.1.22");
   Component ipsInput = Input(&ips, "192.168.1.1,192.168.1.2");
   Component machineNameInput = Input(&machineName, "My Machine Name");
-  Component multicastSendNetmaskInput =  Input(&multicastSendNetmask, "255.255.0.0");
-  Component multicastSendNetprefixInput = Input(&multicastSendNetprefix, "239.255.0.0");
+  Component multicastSendNetmaskInput =  Input(&multicastSendNetmask, "   255.255.0.0   ");
+  Component multicastSendNetprefixInput = Input(&multicastSendNetprefix, "   239.255.0.0   ");
 
   Component tcpContainer = Container::Vertical({ 
     tcpSendToggle,
@@ -127,7 +128,8 @@ int main(){
     multicastSendToggle,
     multicastRecvToggle,
     multicastSendNetmaskInput,
-    multicastSendNetprefixInput
+    multicastSendNetprefixInput,
+    multicastSendTTLToggle
   });
 
   Component mainContainer = Container::Vertical({ 
@@ -181,19 +183,19 @@ int main(){
         border(vbox(
           text("TCP") | bold | center,
           separator(),
-          hbox(text(" Send ") ,separator(),tcpSendToggle->Render()), 
+          hbox(text(" Send ") ,separator(),tcpSendToggle->Render()),
           hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render())
         ) | center),
         border(vbox(
           text("RUDP") | bold | center,
           separator(), 
-          hbox(text(" Send ") ,separator(),rudpSendToggle->Render()), 
+          hbox(text(" Send ") ,separator(),rudpSendToggle->Render()),
           hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render())
         ) | center),
         border(vbox(
           text("Unicast") | bold | center, 
           separator(), 
-          hbox(text(" Send ") ,separator(),unicastSendToggle->Render()), 
+          hbox(text(" Send ") ,separator(),unicastSendToggle->Render()),
           hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render())
         ) | center
       ) | center ) | center,
@@ -201,7 +203,7 @@ int main(){
       hbox(
         border(
           vbox(
-            text("      Multicast Enables      ") | bold | center,
+            text("     Multicast Enables     ") | bold | center,
             separator(),
             hbox(
               vbox(
@@ -214,7 +216,7 @@ int main(){
 
       border(
         vbox(
-          text("      Multicast IP Settings      ") | bold | center,
+          text("    Multicast IP Settings    ") | bold | center,
           separator(),
           hbox(
             vbox( 
@@ -222,8 +224,21 @@ int main(){
                 hbox(text(" NetPrefix ") | bold | center, separator(),multicastSendNetprefixInput->Render())
                 )
               )
+            )
+          ),
+      border(
+        vbox(
+          text("        Multicast        ") | bold | center,
+          text("TTL") | bold | center,
+          separator(),
+          hbox(
+            vbox( 
+                hbox(text(" TTL ") | bold | center, separator(),multicastSendTTLToggle->Render())
+                ) | center
+              )
             ) | center
           ) | center
+
         ) | center,
 
       separator(),
