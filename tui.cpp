@@ -125,7 +125,9 @@ int main(){
 
   Component multicastContainer = Container::Vertical({
     multicastSendToggle,
-    multicastRecvToggle
+    multicastRecvToggle,
+    multicastSendNetmaskInput,
+    multicastSendNetprefixInput
   });
 
   Component mainContainer = Container::Vertical({ 
@@ -142,6 +144,7 @@ int main(){
   
   auto renderer = Renderer(mainContainer, [&] {
     auto layout = vbox({
+      text(""),
       text(titleL1) | center,
       text(titleL2) | center,
       text(titleL3) | center,
@@ -198,14 +201,30 @@ int main(){
       hbox(
         border(
           vbox(
-            text("Multicast") | bold | center,
+            text("      Multicast Enables      ") | bold | center,
             separator(),
-            vbox(
-            hbox(text(" Send ") | bold | center, separator(),multicastSendToggle->Render()),
-            hbox(text(" Recv ") | bold | center, separator(),multicastRecvToggle->Render())
+            hbox(
+              vbox(
+                hbox(text(" Send ") | bold | center, separator(),multicastSendToggle->Render()),
+                hbox(text(" Recv ") | bold | center, separator(),multicastRecvToggle->Render())
+                )
               )
-            )
-          )) | center,
+            ) | center
+          ) | center,
+
+      border(
+        vbox(
+          text("      Multicast IP Settings      ") | bold | center,
+          separator(),
+          hbox(
+            vbox( 
+                hbox(text("  Netmask  ") | bold | center, separator(),multicastSendNetmaskInput->Render()),
+                hbox(text(" NetPrefix ") | bold | center, separator(),multicastSendNetprefixInput->Render())
+                )
+              )
+            ) | center
+          ) | center
+        ) | center,
 
       separator(),
 
@@ -218,7 +237,6 @@ int main(){
     });
     return layout;  
   });
-
 
   screen.Loop(renderer);
   
