@@ -210,6 +210,18 @@ void generateMissingConfig(json& ndiConfig) {
     ndiConfig["ndi"]["multicast"]["send"] = {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}};
   }
 
+  if (!ndiConfig["ndi"]["multicast"]["send"].contains("ttl")) {
+    ndiConfig["ndi"]["multicast"]["send"]["ttl"] = 1;
+  }
+
+  if (!ndiConfig["ndi"]["multicast"]["send"].contains("netmask")) {
+    ndiConfig["ndi"]["multicast"]["send"]["netmask"] = "";
+  }
+  
+  if (!ndiConfig["ndi"]["multicast"]["send"].contains("netprefix")) {
+    ndiConfig["ndi"]["multicast"]["send"]["netprefix"] = "";
+  }
+  
   if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
     ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}};
   }
