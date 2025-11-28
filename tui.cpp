@@ -9,7 +9,6 @@
 #include <ftxui/dom/elements.hpp>  // for text, vbox
 #include <ftxui/component/screen_interactive.hpp>  // for ScreenInteractive
 
-
 using std::cout;
 using nlohmann::json;
 using std::string;
@@ -19,8 +18,7 @@ using std::ofstream;
 using std::vector;
 using namespace ftxui;
 
-
-int main(){
+int main() {
 
   json ndiConfig; 
   

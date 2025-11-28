@@ -12,7 +12,7 @@ using std::ifstream;
 using std::ofstream;
 
 
-string getHomeDir(){
+string getHomeDir() {
   const char* home = std::getenv("HOME");
   return home ? string(home) : string("");
 }
@@ -110,7 +110,7 @@ void unicastSet(bool send, bool recv, json& ndiConfig) {
 
 void multicastRecvSet(bool recv, json& ndiConfig) {
 
-  if (!ndiConfig["ndi"].contains("multicast")){
+  if (!ndiConfig["ndi"].contains("multicast")) {
     multicastGenConfig(ndiConfig);
   }
 
@@ -124,7 +124,7 @@ void multicastRecvSet(bool recv, json& ndiConfig) {
 
 void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json& ndiConfig) {
   
-  if (!ndiConfig["ndi"].contains("multicast")){
+  if (!ndiConfig["ndi"].contains("multicast")) {
     multicastGenConfig(ndiConfig);
   }
   
@@ -198,11 +198,11 @@ void generateMissingConfig(json& ndiConfig) {
     ndiConfig["ndi"]["groups"]["send"] = "Public,";
   }
 
-  if (!ndiConfig["ndi"].contains("machinename")){
+  if (!ndiConfig["ndi"].contains("machinename")) {
     ndiConfig["ndi"]["machinename"] = "";
   }
 
-  if (!ndiConfig["ndi"].contains("multicast")){
+  if (!ndiConfig["ndi"].contains("multicast")) {
     multicastGenConfig(ndiConfig);
   }
   
