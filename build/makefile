@@ -10,7 +10,7 @@ CXXFLAGS = -static
 SOURCES = ../tui.cpp ../accessman.cpp
 
 # Object files
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = $(addprefix obj/, $(notdir $(SOURCES:.cpp=.o)))
 
 # Executable name
 EXECUTABLE = accessman
@@ -26,9 +26,10 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CXX) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 # Rule to compile source files into object files
-%.o: %.cpp
+obj/%.o: ../%.cpp
+	@mkdir -p obj
 	$(CXX) -c $< -o $@
 
 # Clean target to remove generated files
 clean:
-	rm -f $(OBJECTS) $(EXECUTABLE)
+	rm -rf obj $(EXECUTABLE)
