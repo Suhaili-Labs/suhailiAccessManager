@@ -1,4 +1,5 @@
-# suhailiAccessManager
+# Suhaili Labs Access Manager
+## For NDI
 
 Terminal UI tool for managing the NDI configuration file on Linux.
 
