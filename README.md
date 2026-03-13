@@ -1,13 +1,103 @@
 # suhailiAccessManager
-Manage NDI Configuration files on Linux
 
-The file ndi-config.v1.json is located in ~/.ndi. It controls what send and receive modes are enabled, as well as other settings when using the NDI SDKs. 
+Terminal UI tool for managing the NDI configuration file on Linux.
 
-The goal of the project is to allow for quick and easy modification of these configuration files, across systems and containers.
+This project edits the NDI SDK config file:
 
-Compile with C++ 17 or above.
+- `~/.ndi/ndi-config.v1.json`
 
-TUI included
+The config controls discovery, groups, transport modes, and multicast behavior used by NDI applications.
 
-NDI Config JSON is documented here:
+NDI configuration reference:
 https://docs.ndi.video/all/developing-with-ndi/sdk/configuration-files
+
+## What It Does
+
+The app provides a text-based interface (TUI) to modify:
+
+- Machine name
+- Discovery servers (`ndi.networks.discovery`)
+- Discovery IP list (`ndi.networks.ips`)
+- Send and receive groups (`ndi.groups.send`, `ndi.groups.recv`)
+- TCP send/recv enable flags
+- RUDP send/recv enable flags
+- Unicast send/recv enable flags
+- Multicast recv enable flag
+- Multicast send settings:
+	- enable
+	- netmask
+	- netprefix
+	- TTL
+
+On startup, the app also creates any missing config sections/keys required by the UI so partial JSON files can still be safely edited.
+
+## Behavior on First Run
+
+- If `~/.ndi` does not exist, it is created.
+- If `~/.ndi/ndi-config.v1.json` does not exist or cannot be opened, the app starts with defaults in memory and writes a new config file when you exit the UI.
+
+## Requirements
+
+- Linux
+- C++ compiler (`g++`)
+- FTXUI static libraries available at:
+	- `/usr/lib/libftxui-component.a`
+	- `/usr/lib/libftxui-dom.a`
+	- `/usr/lib/libftxui-screen.a`
+- C++17 or newer recommended
+
+`json.hpp` (nlohmann/json single-header) is already included in this repository.
+
+## Build
+
+The project includes a Makefile at `build/makefile`.
+
+From the project root:
+
+```bash
+cd build
+make -f makefile
+```
+
+This generates:
+
+- `build/accessman`
+
+Clean build artifacts:
+
+```bash
+cd build
+make -f makefile clean
+```
+
+## Run
+
+From project root:
+
+```bash
+./build/accessman
+```
+
+Use keyboard navigation in the TUI to adjust values, then exit using the `Exit` button. The config is written back to `~/.ndi/ndi-config.v1.json` when the program exits.
+
+## Project Structure
+
+- `tui.cpp`: TUI entry point and UI layout (FTXUI)
+- `accessman.cpp`: JSON update helpers and missing-key generation
+- `accessman.h`: helper function declarations
+- `json.hpp`: nlohmann/json header
+- `build/makefile`: build instructions and linking
+
+## Troubleshooting
+
+- Linker errors for FTXUI:
+	- Ensure static FTXUI libraries exist in `/usr/lib` with the exact names used in `build/makefile`.
+- Config not updating:
+	- Confirm write permissions for `~/.ndi/ndi-config.v1.json`.
+- Program starts but config seems incomplete:
+	- This is expected for sparse configs; missing fields are auto-generated before rendering the UI.
+
+## Notes
+
+- This tool currently targets Linux.
+- NDI is a registered trademark of Vizrt NDI AB.

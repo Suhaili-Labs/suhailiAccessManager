@@ -245,7 +245,7 @@ int main() {
       
       separator(),
 
-      text("By Alexander Ujvarosy | NDI® is a registered trademark of Vizrt NDI AB") | dim | center,
+      text("By Suhaili Labs | NDI® is a registered trademark of Vizrt NDI AB") | dim | center,
 
     });
     return layout;  
