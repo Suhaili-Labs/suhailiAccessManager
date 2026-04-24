@@ -61,7 +61,7 @@ int main() {
 
 
   auto screen = ScreenInteractive::Fullscreen();
-  auto exitButton = Button("Exit", screen.ExitLoopClosure());
+  auto exitButton = Button("Save & Exit", screen.ExitLoopClosure());
   
   vector<string> toggleEntries = {
     "  Disable  ",
@@ -157,6 +157,7 @@ int main() {
       text(titleL5) | center,
       text(""),
       text("A TUI Access Manager for NDI on Linux") | bold | center,
+      text("Version 1.0") | bold | center,
   
       hbox(
         border(vbox(

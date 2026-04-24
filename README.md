@@ -39,6 +39,10 @@ On startup, the app also creates any missing config sections/keys required by th
 
 ## Requirements
 
+These requirements apply when **building from source**. If you don't want to build from source, pre-built dependency-free binaries are available in the [Releases](../../releases) section.
+
+Tested on Ubuntu 24.04 and Arch Linux.
+
 - Linux
 - C++ compiler (`g++`)
 - FTXUI static libraries available at:
@@ -80,6 +84,18 @@ From project root:
 ```
 
 Use keyboard navigation in the TUI to adjust values, then exit using the `Exit` button. The config is written back to `~/.ndi/ndi-config.v1.json` when the program exits.
+
+To make `accessman` available system-wide, copy the binary to `/usr/local/bin`:
+
+```bash
+sudo cp build/accessman /usr/local/bin/accessman
+```
+
+It can then be run from anywhere with:
+
+```bash
+accessman
+```
 
 ## Project Structure
 
