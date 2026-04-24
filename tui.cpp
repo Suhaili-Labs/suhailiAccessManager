@@ -51,9 +51,14 @@ int main() {
 
 // TUI BELOW
 
-  string titleL1 = "░█▀█░█▀▀░█▀▀░█▀▀░█▀▀░█▀▀░░░█▄█░█▀█░█▀█░█▀█░█▀▀░█▀▀░█▀▄";
-  string titleL2 = "░█▀█░█░░░█░░░█▀▀░▀▀█░▀▀█░░░█░█░█▀█░█░█░█▀█░█░█░█▀▀░█▀▄";
-  string titleL3 = "░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░░░▀░▀░▀░▀░▀░▀░▀░▀░▀▀▀░▀▀▀░▀░▀";
+  string titleL1 = "█▀▀ █ █ █ █ ▄▀█ █ █   █";
+  string titleL2 = "▄▄█ █▄█ █▀█ █▀█ █ █▄▄ █";
+  string titleL3 = "";
+  string titleL4 = "▄▀█ █▀▀ █▀▀ █▀▀ █▀▀ █▀▀   █▀▄▀█ ▄▀█ █▄ █ ▄▀█ █▀▀ █▀▀ █▀█";
+  string titleL5 = "█▀█ █▄▄ █▄▄ ██▄ ▄▄█ ▄▄█   █ ▀ █ █▀█ █ ▀█ █▀█ █▄█ ██▄ █▀▄";
+
+
+
 
   auto screen = ScreenInteractive::Fullscreen();
   auto exitButton = Button("Exit", screen.ExitLoopClosure());
@@ -148,8 +153,10 @@ int main() {
       text(titleL1) | center,
       text(titleL2) | center,
       text(titleL3) | center,
+      text(titleL4) | center,
+      text(titleL5) | center,
       text(""),
-      text("TUI NDI Access Manager for Linux") | bold | center,
+      text("A TUI Access Manager for NDI on Linux") | bold | center,
   
       hbox(
         border(vbox(
@@ -179,7 +186,7 @@ int main() {
       
       hbox(
         border(vbox(
-          text("TCP") | bold | center,
+          text("Multi-TCP") | bold | center,
           separator(),
           hbox(text(" Send ") ,separator(),tcpSendToggle->Render()),
           hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render())
