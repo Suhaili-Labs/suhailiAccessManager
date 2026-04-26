@@ -1,6 +1,6 @@
 # Suhaili Labs Access Manager for NDI
 
-Terminal UI tool for managing the NDI configuration file on Linux.
+Terminal UI tool for managing NDI configuration files on Linux.
 
 <img width="1249" height="826" alt="suhailiAccessManager" src="https://github.com/user-attachments/assets/b9f3e2ff-08b6-4aee-b1d5-cd53d3596c22" />
 
