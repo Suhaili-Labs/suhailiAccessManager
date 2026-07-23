@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+#include <filesystem>
+#include <system_error>
 #include "json.hpp"
 #include "accessman.h"
 
@@ -20,14 +23,25 @@ using namespace ftxui;
 
 int main() {
 
-  json ndiConfig; 
+  json ndiConfig = json::object();
   
 // Make Function????
   const std::filesystem::path ndiDir = std::filesystem::path(getHomeDir()) / ".ndi";
   
-  if (!std::filesystem::exists(ndiDir)) {
-    std::filesystem::create_directory(ndiDir);
-    cout << ".ndi Direcory does not exist. Creating." << endl;
+  std::error_code fsError;
+  const bool ndiDirExists = std::filesystem::exists(ndiDir, fsError);
+  if (fsError) {
+    std::cerr << "Could not check NDI config directory: " << ndiDir << " (" << fsError.message() << ")" << endl;
+    return 1;
+  }
+
+  if (!ndiDirExists) {
+    std::filesystem::create_directories(ndiDir, fsError);
+    if (fsError) {
+      std::cerr << "Could not create NDI config directory: " << ndiDir << " (" << fsError.message() << ")" << endl;
+      return 1;
+    }
+    cout << ".ndi directory does not exist. Creating." << endl;
   }
 // Make Function????
   const std::filesystem::path configPath = ndiDir / "ndi-config.v1.json";
@@ -38,16 +52,27 @@ int main() {
 // in the ndi-config, or program will crash if they are not present in the config.
 
   ifstream inputFile(configPath);
-  if (!inputFile.is_open()) {
-    std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
-    cout << "New ndi-config.v1.json will be created." << endl;
-  } else {
-    inputFile >> ndiConfig;
+  if (inputFile.is_open()) {
+    try {
+      inputFile >> ndiConfig;
+    } catch (const json::exception& e) {
+      std::cerr << "Invalid NDI Config JSON at " << configPath << ": " << e.what() << endl;
+      cout << "Using default config values for this run." << endl;
+      ndiConfig = json::object();
+    }
     inputFile.close();
+  } else {
+    cout << "NDI config file does not exist yet. A new ndi-config.v1.json will be created." << endl;
   }
 
 // Generate anny "missing" config items so they can be accessed without errors
-  generateMissingConfig(ndiConfig);
+  try {
+    generateMissingConfig(ndiConfig);
+  } catch (const json::exception& e) {
+    std::cerr << "Could not normalize NDI config, resetting to defaults: " << e.what() << endl;
+    ndiConfig = json::object();
+    generateMissingConfig(ndiConfig);
+  }
 
 // TUI BELOW
 
@@ -79,6 +104,20 @@ int main() {
   int multicastSendSelected = ndiConfig["ndi"]["multicast"]["send"]["enable"];
   int multicastRecvSelected = ndiConfig["ndi"]["multicast"]["recv"]["enable"]; 
   int multicastSendTTL = ndiConfig["ndi"]["multicast"]["send"]["ttl"];
+
+  auto normalizeToggleSelection = [](int value) {
+    return value == 0 ? 0 : 1;
+  };
+
+  tcpSendSelected = normalizeToggleSelection(tcpSendSelected);
+  tcpRecvSelected = normalizeToggleSelection(tcpRecvSelected);
+  rudpSendSelected = normalizeToggleSelection(rudpSendSelected);
+  rudpRecvSelected = normalizeToggleSelection(rudpRecvSelected);
+  unicastSendSelected = normalizeToggleSelection(unicastSendSelected);
+  unicastRecvSelected = normalizeToggleSelection(unicastRecvSelected);
+  multicastSendSelected = normalizeToggleSelection(multicastSendSelected);
+  multicastRecvSelected = normalizeToggleSelection(multicastRecvSelected);
+  multicastSendTTL = std::clamp(multicastSendTTL, 0, static_cast<int>(ttlEntries.size()) - 1);
 
   string sendGroups = ndiConfig["ndi"]["groups"]["send"];
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];

@@ -4,7 +4,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -static
+CXXFLAGS =
 
 # Source files
 SOURCES = ../tui.cpp ../accessman.cpp
@@ -16,7 +16,7 @@ OBJECTS = $(addprefix obj/, $(notdir $(SOURCES:.cpp=.o)))
 EXECUTABLE = accessman
 
 # Libraries
-LIBS = /usr/lib/libftxui-component.a /usr/lib/libftxui-dom.a /usr/lib/libftxui-screen.a
+LIBS = -lftxui-component -lftxui-dom -lftxui-screen
 
 # Default target
 all: $(EXECUTABLE)
