@@ -1,15 +1,12 @@
 #include <iostream>
-#include <fstream>
 #include <algorithm>
-#include <cctype>
 #include <filesystem>
 #include <functional>
-#include <sstream>
-#include <system_error>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include "json.hpp"
-#include "accessman.h"
+#include "accessman.hpp"
+#include "tui_support.hpp"
 
 #include <ftxui/component/component.hpp>  // for Button, Renderer
 #include <ftxui/component/component_options.hpp>  // for Catch
@@ -21,10 +18,9 @@ using std::cout;
 using nlohmann::json;
 using std::string;
 using std::endl;
-using std::ifstream;
-using std::ofstream;
 using std::vector;
 using namespace ftxui;
+using namespace tui_support;
 
 namespace {
 
@@ -41,160 +37,27 @@ TerminalSize getTerminalSize() {
   return {static_cast<int>(ws.ws_col), static_cast<int>(ws.ws_row)};
 }
 
-string trim(const string& value) {
-  const string whitespace = " \t\n\r";
-  const size_t start = value.find_first_not_of(whitespace);
-  if (start == string::npos) {
-    return "";
-  }
-  const size_t end = value.find_last_not_of(whitespace);
-  return value.substr(start, end - start + 1);
-}
-
-vector<string> splitCsv(const string& value) {
-  vector<string> tokens;
-  std::stringstream ss(value);
-  string token;
-  while (std::getline(ss, token, ',')) {
-    token = trim(token);
-    if (!token.empty()) {
-      tokens.push_back(token);
-    }
-  }
-  return tokens;
-}
-
-bool isValidIPv4(const string& value) {
-  std::stringstream ss(value);
-  string part;
-  int count = 0;
-  while (std::getline(ss, part, '.')) {
-    if (part.empty() || part.size() > 3) {
-      return false;
-    }
-    for (char c : part) {
-      if (!std::isdigit(static_cast<unsigned char>(c))) {
-        return false;
-      }
-    }
-    int octet = std::stoi(part);
-    if (octet < 0 || octet > 255) {
-      return false;
-    }
-    ++count;
-  }
-  return count == 4;
-}
-
-bool isValidNetmask(const string& value) {
-  if (!isValidIPv4(value)) {
-    return false;
-  }
-
-  std::stringstream ss(value);
-  string part;
-  uint32_t mask = 0;
-  while (std::getline(ss, part, '.')) {
-    mask = (mask << 8) | static_cast<uint32_t>(std::stoi(part));
-  }
-
-  // Netmask bits must be contiguous ones followed by zeros.
-  bool seenZero = false;
-  for (int bit = 31; bit >= 0; --bit) {
-    const bool set = ((mask >> bit) & 1U) != 0;
-    if (!set) {
-      seenZero = true;
-      continue;
-    }
-    if (seenZero) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool isValidMulticastPrefix(const string& value) {
-  if (!isValidIPv4(value)) {
-    return false;
-  }
-
-  std::stringstream ss(value);
-  string first;
-  std::getline(ss, first, '.');
-  int firstOctet = std::stoi(first);
-  return firstOctet >= 224 && firstOctet <= 239;
-}
-
-bool validateCsvIPv4(const string& value) {
-  for (const string& token : splitCsv(value)) {
-    if (!isValidIPv4(token)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 }  // namespace
 
 int main() {
 
   const int minTerminalWidth = 80;
   const int minTerminalHeight = 32;
-  const string appVersion = "1.0";
+  const string appVersion = "1.1.0";
   const string defaultMulticastNetmask = "255.255.0.0";
   const string defaultMulticastNetprefix = "239.255.0.0";
 
-  json ndiConfig = json::object();
-  
-// Make Function????
-  const std::filesystem::path ndiDir = std::filesystem::path(getHomeDir()) / ".ndi";
-  
-  std::error_code fsError;
-  const bool ndiDirExists = std::filesystem::exists(ndiDir, fsError);
-  if (fsError) {
-    std::cerr << "Could not check NDI config directory: " << ndiDir << " (" << fsError.message() << ")" << endl;
+  const ConfigPaths paths = getConfigPaths();
+  if (!ensureConfigDirectory(paths.ndiDir)) {
     return 1;
   }
 
-  if (!ndiDirExists) {
-    std::filesystem::create_directories(ndiDir, fsError);
-    if (fsError) {
-      std::cerr << "Could not create NDI config directory: " << ndiDir << " (" << fsError.message() << ")" << endl;
-      return 1;
-    }
-    cout << ".ndi directory does not exist. Creating." << endl;
-  }
-// Make Function????
-  const std::filesystem::path configPath = ndiDir / "ndi-config.v1.json";
-  const std::filesystem::path backupConfigPath = configPath.string() + ".bak";
+  const std::filesystem::path& configPath = paths.configPath;
+  const std::filesystem::path& backupConfigPath = paths.backupConfigPath;
 
   cout << "NDI Config Dir: " << configPath << endl;
-  
-// Need to add a function to generate missing settings if they do not exist
-// in the ndi-config, or program will crash if they are not present in the config.
 
-  ifstream inputFile(configPath);
-  if (inputFile.is_open()) {
-    try {
-      inputFile >> ndiConfig;
-    } catch (const json::exception& e) {
-      std::cerr << "Invalid NDI Config JSON at " << configPath << ": " << e.what() << endl;
-      cout << "Using default config values for this run." << endl;
-      ndiConfig = json::object();
-    }
-    inputFile.close();
-  } else {
-    cout << "NDI config file does not exist yet. A new ndi-config.v1.json will be created." << endl;
-  }
-
-// Generate anny "missing" config items so they can be accessed without errors
-  try {
-    generateMissingConfig(ndiConfig);
-  } catch (const json::exception& e) {
-    std::cerr << "Could not normalize NDI config, resetting to defaults: " << e.what() << endl;
-    ndiConfig = json::object();
-    generateMissingConfig(ndiConfig);
-  }
+  json ndiConfig = loadConfigWithDefaults(configPath);
 
 // TUI BELOW
 
@@ -357,26 +220,11 @@ int main() {
   std::function<void()> loadBackupIntoForm = [] {};
 
   loadBackupIntoForm = [&] {
-    if (!std::filesystem::exists(backupConfigPath)) {
-      restoreStatusIsError = true;
-      restoreStatusMessage = "No backup file found";
-      return;
-    }
-
-    ifstream backupInputFile(backupConfigPath);
-    if (!backupInputFile.is_open()) {
-      restoreStatusIsError = true;
-      restoreStatusMessage = "Could not open backup file";
-      return;
-    }
-
     json backupConfig;
-    try {
-      backupInputFile >> backupConfig;
-      generateMissingConfig(backupConfig);
-    } catch (const json::exception&) {
+    string backupError;
+    if (!loadBackupConfig(backupConfigPath, backupConfig, backupError)) {
       restoreStatusIsError = true;
-      restoreStatusMessage = "Backup file is invalid JSON";
+      restoreStatusMessage = backupError;
       return;
     }
 
@@ -828,45 +676,9 @@ int main() {
   );
   multicastRecvSet(multicastRecvSelected, ndiConfig);
 
-  const std::filesystem::path tempConfigPath = configPath.string() + ".tmp";
-
-  ofstream outputFile(tempConfigPath);
-  if (!outputFile.is_open()) {
-    std::cerr << "Could not open temp NDI config JSON: " << tempConfigPath << endl;
-    return 1;
-  }
-
-  outputFile << ndiConfig.dump(2);
-  outputFile.flush();
-  if (!outputFile.good()) {
-    std::cerr << "Failed to write temp NDI config JSON: " << tempConfigPath << endl;
-    outputFile.close();
-    std::error_code cleanupError;
-    std::filesystem::remove(tempConfigPath, cleanupError);
-    return 1;
-  }
-  outputFile.close();
-
-  if (std::filesystem::exists(configPath)) {
-    std::error_code backupError;
-    std::filesystem::copy_file(
-      configPath,
-      backupConfigPath,
-      std::filesystem::copy_options::overwrite_existing,
-      backupError
-    );
-    if (backupError) {
-      std::cerr << "Warning: could not create NDI config backup at " << backupConfigPath
-                << ": " << backupError.message() << endl;
-    }
-  }
-
-  std::error_code renameError;
-  std::filesystem::rename(tempConfigPath, configPath, renameError);
-  if (renameError) {
-    std::cerr << "Could not atomically replace NDI config JSON: " << renameError.message() << endl;
-    std::error_code cleanupError;
-    std::filesystem::remove(tempConfigPath, cleanupError);
+  string saveError;
+  if (!saveConfigAtomicallyWithBackup(configPath, backupConfigPath, ndiConfig, saveError)) {
+    std::cerr << saveError << endl;
     return 1;
   }
 

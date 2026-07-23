@@ -102,8 +102,8 @@ accessman
 ## Project Structure
 
 - `tui.cpp`: TUI entry point and UI layout (FTXUI)
-- `accessman.cpp`: JSON update helpers and missing-key generation
-- `accessman.h`: helper function declarations
+- `accessman.hpp`: header-only JSON update helpers and missing-key generation
+- `tui_support.hpp`: header-only TUI validation and config I/O helpers
 - `json.hpp`: nlohmann/json header
 - `build/makefile`: build instructions and linking
 

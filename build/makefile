@@ -7,7 +7,7 @@ CXX = g++
 CXXFLAGS =
 
 # Source files
-SOURCES = ../tui.cpp ../accessman.cpp
+SOURCES = ../tui.cpp
 
 # Object files
 OBJECTS = $(addprefix obj/, $(notdir $(SOURCES:.cpp=.o)))
