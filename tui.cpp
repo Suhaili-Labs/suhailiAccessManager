@@ -140,6 +140,7 @@ int main() {
 
   const int minTerminalWidth = 80;
   const int minTerminalHeight = 32;
+  const string appVersion = "1.0";
   const string defaultMulticastNetmask = "255.255.0.0";
   const string defaultMulticastNetprefix = "239.255.0.0";
 
@@ -212,6 +213,7 @@ int main() {
 
   ExitAction exitAction = ExitAction::Discard;
   bool showDiscardConfirm = false;
+  bool showRestoreConfirm = false;
   string restoreStatusMessage = "Not loaded";
   bool restoreStatusIsError = false;
   string validationStatusMessage = "Ready";
@@ -225,6 +227,12 @@ int main() {
   };
   auto closeScreen = screen.ExitLoopClosure();
   auto saveAndExitButton = Button("Save & Exit", [&] {
+    if (!hasUnsavedChanges()) {
+      validationStatusIsError = false;
+      validationStatusMessage = "No changes to save";
+      return;
+    }
+
     validationAttempted = true;
     string validationError;
     if (!validateBeforeSave(validationError)) {
@@ -346,7 +354,9 @@ int main() {
     return true;
   };
 
-  restoreBackupButton = Button("Restore Backup", [&] {
+  std::function<void()> loadBackupIntoForm = [] {};
+
+  loadBackupIntoForm = [&] {
     if (!std::filesystem::exists(backupConfigPath)) {
       restoreStatusIsError = true;
       restoreStatusMessage = "No backup file found";
@@ -394,6 +404,14 @@ int main() {
 
     restoreStatusIsError = false;
     restoreStatusMessage = "Loaded backup into form";
+  };
+
+  restoreBackupButton = Button("Restore Previous Config", [&] {
+    if (hasUnsavedChanges()) {
+      showRestoreConfirm = true;
+      return;
+    }
+    loadBackupIntoForm();
   });
 
   auto confirmDiscardButton = Button("Yes, Discard", [&] {
@@ -403,6 +421,14 @@ int main() {
   });
   auto cancelDiscardButton = Button("Cancel", [&] {
     showDiscardConfirm = false;
+  });
+
+  auto confirmRestoreButton = Button("Yes, Load Backup", [&] {
+    showRestoreConfirm = false;
+    loadBackupIntoForm();
+  });
+  auto cancelRestoreButton = Button("Cancel", [&] {
+    showRestoreConfirm = false;
   });
 
   Component discardConfirmContainer = Container::Vertical({
@@ -418,6 +444,24 @@ int main() {
         hbox(text("   "), text("Discard and exit anyway?") | dim, text("   ")),
         separator(),
         hbox(text("   "), confirmDiscardButton->Render(), text("  "), cancelDiscardButton->Render(), text("   ")) | center,
+        text(""),
+      })
+    ) | color(Color::White) | bgcolor(Color::RGB(95, 12, 12)) | center;
+  });
+
+  Component restoreConfirmContainer = Container::Vertical({
+    confirmRestoreButton,
+    cancelRestoreButton
+  });
+  Component restoreConfirmDialog = Renderer(restoreConfirmContainer, [&] {
+    return window(
+      text("Load Backup Over Unsaved Edits?") | bold | center,
+      vbox({
+        text(""),
+        hbox(text("   "), text("You have unsaved edits."), text("   ")),
+        hbox(text("   "), text("Load backup into the form anyway?") | dim, text("   ")),
+        separator(),
+        hbox(text("   "), confirmRestoreButton->Render(), text("  "), cancelRestoreButton->Render(), text("   ")) | center,
         text(""),
       })
     ) | color(Color::White) | bgcolor(Color::RGB(95, 12, 12)) | center;
@@ -557,13 +601,18 @@ int main() {
       ? text(validationStatusMessage) | color(Color::Red)
       : text(validationStatusMessage) | color(Color::Green);
 
+    Element saveButtonElement = saveAndExitButton->Render();
+    if (!dirty) {
+      saveButtonElement = saveButtonElement | dim;
+    }
+
     auto layout = vbox({
       text(""),
       text(titleL1) | center,
       text(titleL2) | center,
       text(""),
       text("A TUI Access Manager for NDI on Linux") | bold | center,
-      text("Version 1.0") | bold | center,
+      text("Version " + appVersion) | bold | center,
   
       hbox(
         border(vbox(
@@ -702,7 +751,7 @@ int main() {
       ) | center,
 
       hbox(
-        saveAndExitButton->Render(),
+        saveButtonElement,
         text("  "),
         discardAndExitButton->Render(),
         text("  "),
@@ -722,11 +771,15 @@ int main() {
   });
 
   auto app = Modal(renderer, discardConfirmDialog, &showDiscardConfirm);
+  app = Modal(app, restoreConfirmDialog, &showRestoreConfirm);
 
   app = CatchEvent(app, [&](Event event) {
     if (event == Event::ArrowLeft) {
       if (showDiscardConfirm) {
         return discardConfirmContainer->OnEvent(Event::ArrowUp);
+      }
+      if (showRestoreConfirm) {
+        return restoreConfirmContainer->OnEvent(Event::ArrowUp);
       }
       return mainContainer->OnEvent(Event::ArrowUp);
     }
@@ -734,6 +787,9 @@ int main() {
     if (event == Event::ArrowRight) {
       if (showDiscardConfirm) {
         return discardConfirmContainer->OnEvent(Event::ArrowDown);
+      }
+      if (showRestoreConfirm) {
+        return restoreConfirmContainer->OnEvent(Event::ArrowDown);
       }
       return mainContainer->OnEvent(Event::ArrowDown);
     }
