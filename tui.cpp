@@ -1,8 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <functional>
+#include <sstream>
 #include <system_error>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -39,12 +41,107 @@ TerminalSize getTerminalSize() {
   return {static_cast<int>(ws.ws_col), static_cast<int>(ws.ws_row)};
 }
 
+string trim(const string& value) {
+  const string whitespace = " \t\n\r";
+  const size_t start = value.find_first_not_of(whitespace);
+  if (start == string::npos) {
+    return "";
+  }
+  const size_t end = value.find_last_not_of(whitespace);
+  return value.substr(start, end - start + 1);
+}
+
+vector<string> splitCsv(const string& value) {
+  vector<string> tokens;
+  std::stringstream ss(value);
+  string token;
+  while (std::getline(ss, token, ',')) {
+    token = trim(token);
+    if (!token.empty()) {
+      tokens.push_back(token);
+    }
+  }
+  return tokens;
+}
+
+bool isValidIPv4(const string& value) {
+  std::stringstream ss(value);
+  string part;
+  int count = 0;
+  while (std::getline(ss, part, '.')) {
+    if (part.empty() || part.size() > 3) {
+      return false;
+    }
+    for (char c : part) {
+      if (!std::isdigit(static_cast<unsigned char>(c))) {
+        return false;
+      }
+    }
+    int octet = std::stoi(part);
+    if (octet < 0 || octet > 255) {
+      return false;
+    }
+    ++count;
+  }
+  return count == 4;
+}
+
+bool isValidNetmask(const string& value) {
+  if (!isValidIPv4(value)) {
+    return false;
+  }
+
+  std::stringstream ss(value);
+  string part;
+  uint32_t mask = 0;
+  while (std::getline(ss, part, '.')) {
+    mask = (mask << 8) | static_cast<uint32_t>(std::stoi(part));
+  }
+
+  // Netmask bits must be contiguous ones followed by zeros.
+  bool seenZero = false;
+  for (int bit = 31; bit >= 0; --bit) {
+    const bool set = ((mask >> bit) & 1U) != 0;
+    if (!set) {
+      seenZero = true;
+      continue;
+    }
+    if (seenZero) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool isValidMulticastPrefix(const string& value) {
+  if (!isValidIPv4(value)) {
+    return false;
+  }
+
+  std::stringstream ss(value);
+  string first;
+  std::getline(ss, first, '.');
+  int firstOctet = std::stoi(first);
+  return firstOctet >= 224 && firstOctet <= 239;
+}
+
+bool validateCsvIPv4(const string& value) {
+  for (const string& token : splitCsv(value)) {
+    if (!isValidIPv4(token)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace
 
 int main() {
 
   const int minTerminalWidth = 80;
   const int minTerminalHeight = 32;
+  const string defaultMulticastNetmask = "255.255.0.0";
+  const string defaultMulticastNetprefix = "239.255.0.0";
 
   json ndiConfig = json::object();
   
@@ -119,11 +216,24 @@ int main() {
   bool showDiscardConfirm = false;
   string restoreStatusMessage = "Not loaded";
   bool restoreStatusIsError = false;
+  string validationStatusMessage = "Ready";
+  bool validationStatusIsError = false;
   std::function<bool()> hasUnsavedChanges = [] {
     return false;
   };
+  std::function<bool(string&)> validateBeforeSave = [](string&) {
+    return true;
+  };
   auto closeScreen = screen.ExitLoopClosure();
   auto saveAndExitButton = Button("Save & Exit", [&] {
+    string validationError;
+    if (!validateBeforeSave(validationError)) {
+      validationStatusIsError = true;
+      validationStatusMessage = validationError;
+      return;
+    }
+    validationStatusIsError = false;
+    validationStatusMessage = "Validation passed";
     exitAction = ExitAction::Save;
     closeScreen();
   });
@@ -210,6 +320,30 @@ int main() {
       machineName != initialMachineName ||
       multicastSendNetmask != initialMulticastSendNetmask ||
       multicastSendNetprefix != initialMulticastSendNetprefix;
+  };
+
+  validateBeforeSave = [&](string& errorMessage) {
+    if (!validateCsvIPv4(discoveryServers)) {
+      errorMessage = "Discovery list must contain valid IPv4 values";
+      return false;
+    }
+    if (!validateCsvIPv4(ips)) {
+      errorMessage = "IPs list must contain valid IPv4 values";
+      return false;
+    }
+
+    const string netmaskForValidation = trim(multicastSendNetmask);
+    const string netprefixForValidation = trim(multicastSendNetprefix);
+
+    if (!netmaskForValidation.empty() && !isValidNetmask(netmaskForValidation)) {
+      errorMessage = "Multicast netmask is invalid";
+      return false;
+    }
+    if (!netprefixForValidation.empty() && !isValidMulticastPrefix(netprefixForValidation)) {
+      errorMessage = "Multicast netprefix must be in 224.0.0.0/4";
+      return false;
+    }
+    return true;
   };
 
   restoreBackupButton = Button("Restore Backup", [&] {
@@ -380,6 +514,10 @@ int main() {
       ? text(restoreStatusMessage) | color(Color::Red)
       : text(restoreStatusMessage) | color(Color::Green);
 
+    Element validationSaveStatus = validationStatusIsError
+      ? text(validationStatusMessage) | color(Color::Red)
+      : text(validationStatusMessage) | color(Color::Green);
+
     auto layout = vbox({
       text(""),
       text(titleL1) | center,
@@ -487,7 +625,7 @@ int main() {
             text("Status") | bold | center,
             separator(),
             hbox(text(" Changes "), separator(), text("  "), changeStatus, text("  ")),
-            hbox(text("         "), separator(), text("  "), text("  "), text("  "))
+            hbox(text(" Save    "), separator(), text("  "), validationSaveStatus, text("  "))
           ) | flex,
           separator(),
           vbox(
@@ -533,7 +671,19 @@ int main() {
   rudpSet(rudpSendSelected, rudpRecvSelected, ndiConfig);
   unicastSet(unicastSendSelected,unicastRecvSelected, ndiConfig);
   machineNameSet(machineName, ndiConfig);
-  multicastSendSet(multicastSendSelected, multicastSendNetmask, multicastSendNetprefix, multicastSendTTL, ndiConfig);
+
+  const string multicastNetmaskForSave =
+    trim(multicastSendNetmask).empty() ? defaultMulticastNetmask : trim(multicastSendNetmask);
+  const string multicastNetprefixForSave =
+    trim(multicastSendNetprefix).empty() ? defaultMulticastNetprefix : trim(multicastSendNetprefix);
+
+  multicastSendSet(
+    multicastSendSelected,
+    multicastNetmaskForSave,
+    multicastNetprefixForSave,
+    multicastSendTTL,
+    ndiConfig
+  );
   multicastRecvSet(multicastRecvSelected, ndiConfig);
 
   const std::filesystem::path tempConfigPath = configPath.string() + ".tmp";
