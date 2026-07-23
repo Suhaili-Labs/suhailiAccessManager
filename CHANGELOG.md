@@ -10,6 +10,7 @@ All notable changes to this project are documented in this file.
 - Selection normalization for all boolean toggles and bounds clamping for multicast TTL index.
 - A new `Discard & Exit` button in the TUI that exits without writing changes to config.
 - A live `Unsaved changes` / `All changes saved` status indicator in the TUI.
+- A minimum terminal size gate that shows a resize prompt instead of rendering the full TUI when the screen is too small.
 
 ### Changed
 - Filesystem directory checks and creation now use non-throwing `std::error_code` flows with user-facing error messages.

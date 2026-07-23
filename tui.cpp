@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <filesystem>
 #include <system_error>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include "json.hpp"
 #include "accessman.h"
 
@@ -21,7 +23,27 @@ using std::ofstream;
 using std::vector;
 using namespace ftxui;
 
+namespace {
+
+struct TerminalSize {
+  int width;
+  int height;
+};
+
+TerminalSize getTerminalSize() {
+  winsize ws{};
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != 0) {
+    return {0, 0};
+  }
+  return {static_cast<int>(ws.ws_col), static_cast<int>(ws.ws_row)};
+}
+
+}  // namespace
+
 int main() {
+
+  const int minTerminalWidth = 80;
+  const int minTerminalHeight = 32;
 
   json ndiConfig = json::object();
   
@@ -214,6 +236,22 @@ int main() {
 
   
   auto renderer = Renderer(mainContainer, [&] {
+    TerminalSize termSize = getTerminalSize();
+    const bool terminalTooSmall =
+      termSize.width > 0 && termSize.height > 0 &&
+      (termSize.width < minTerminalWidth || termSize.height < minTerminalHeight);
+
+    if (terminalTooSmall) {
+      return vbox({
+        filler(),
+        text("Terminal too small for Access Manager") | bold | center,
+        text("Minimum size: " + std::to_string(minTerminalWidth) + "x" + std::to_string(minTerminalHeight) +
+             " (current: " + std::to_string(termSize.width) + "x" + std::to_string(termSize.height) + ")") | center,
+        text("Resize your terminal to continue.") | dim | center,
+        filler(),
+      });
+    }
+
     const bool hasUnsavedChanges =
       tcpSendSelected != initialTcpSendSelected ||
       tcpRecvSelected != initialTcpRecvSelected ||
