@@ -2,6 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include <filesystem>
+#include <functional>
 #include <system_error>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -67,6 +68,7 @@ int main() {
   }
 // Make Function????
   const std::filesystem::path configPath = ndiDir / "ndi-config.v1.json";
+  const std::filesystem::path backupConfigPath = configPath.string() + ".bak";
 
   cout << "NDI Config Dir: " << configPath << endl;
   
@@ -111,23 +113,29 @@ int main() {
   enum class ExitAction {
     Discard,
     Save,
-    RestoreBackup,
   };
 
   ExitAction exitAction = ExitAction::Discard;
+  bool showDiscardConfirm = false;
+  string restoreStatusMessage = "Not loaded";
+  bool restoreStatusIsError = false;
+  std::function<bool()> hasUnsavedChanges = [] {
+    return false;
+  };
   auto closeScreen = screen.ExitLoopClosure();
   auto saveAndExitButton = Button("Save & Exit", [&] {
     exitAction = ExitAction::Save;
     closeScreen();
   });
   auto discardAndExitButton = Button("Discard & Exit", [&] {
+    if (hasUnsavedChanges()) {
+      showDiscardConfirm = true;
+      return;
+    }
     exitAction = ExitAction::Discard;
     closeScreen();
   });
-  auto restoreBackupButton = Button("Restore Backup", [&] {
-    exitAction = ExitAction::RestoreBackup;
-    closeScreen();
-  });
+  Component restoreBackupButton;
   
   vector<string> toggleEntries = {
     "  Disable  ",
@@ -184,6 +192,100 @@ int main() {
   const string initialMachineName = machineName;
   const string initialMulticastSendNetmask = multicastSendNetmask;
   const string initialMulticastSendNetprefix = multicastSendNetprefix;
+
+  hasUnsavedChanges = [&] {
+    return tcpSendSelected != initialTcpSendSelected ||
+      tcpRecvSelected != initialTcpRecvSelected ||
+      rudpSendSelected != initialRudpSendSelected ||
+      rudpRecvSelected != initialRudpRecvSelected ||
+      unicastSendSelected != initialUnicastSendSelected ||
+      unicastRecvSelected != initialUnicastRecvSelected ||
+      multicastSendSelected != initialMulticastSendSelected ||
+      multicastRecvSelected != initialMulticastRecvSelected ||
+      multicastSendTTL != initialMulticastSendTTL ||
+      sendGroups != initialSendGroups ||
+      recvGroups != initialRecvGroups ||
+      discoveryServers != initialDiscoveryServers ||
+      ips != initialIps ||
+      machineName != initialMachineName ||
+      multicastSendNetmask != initialMulticastSendNetmask ||
+      multicastSendNetprefix != initialMulticastSendNetprefix;
+  };
+
+  restoreBackupButton = Button("Restore Backup", [&] {
+    if (!std::filesystem::exists(backupConfigPath)) {
+      restoreStatusIsError = true;
+      restoreStatusMessage = "No backup file found";
+      return;
+    }
+
+    ifstream backupInputFile(backupConfigPath);
+    if (!backupInputFile.is_open()) {
+      restoreStatusIsError = true;
+      restoreStatusMessage = "Could not open backup file";
+      return;
+    }
+
+    json backupConfig;
+    try {
+      backupInputFile >> backupConfig;
+      generateMissingConfig(backupConfig);
+    } catch (const json::exception&) {
+      restoreStatusIsError = true;
+      restoreStatusMessage = "Backup file is invalid JSON";
+      return;
+    }
+
+    tcpSendSelected = normalizeToggleSelection(backupConfig["ndi"]["tcp"]["send"]["enable"]);
+    tcpRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["tcp"]["recv"]["enable"]);
+    rudpSendSelected = normalizeToggleSelection(backupConfig["ndi"]["rudp"]["send"]["enable"]);
+    rudpRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["rudp"]["recv"]["enable"]);
+    unicastSendSelected = normalizeToggleSelection(backupConfig["ndi"]["unicast"]["send"]["enable"]);
+    unicastRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["unicast"]["recv"]["enable"]);
+    multicastSendSelected = normalizeToggleSelection(backupConfig["ndi"]["multicast"]["send"]["enable"]);
+    multicastRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["multicast"]["recv"]["enable"]);
+    multicastSendTTL = std::clamp(
+      static_cast<int>(backupConfig["ndi"]["multicast"]["send"]["ttl"]),
+      0,
+      static_cast<int>(ttlEntries.size()) - 1
+    );
+
+    sendGroups = backupConfig["ndi"]["groups"]["send"];
+    recvGroups = backupConfig["ndi"]["groups"]["recv"];
+    discoveryServers = backupConfig["ndi"]["networks"]["discovery"];
+    ips = backupConfig["ndi"]["networks"]["ips"];
+    machineName = backupConfig["ndi"]["machinename"];
+    multicastSendNetmask = backupConfig["ndi"]["multicast"]["send"]["netmask"];
+    multicastSendNetprefix = backupConfig["ndi"]["multicast"]["send"]["netprefix"];
+
+    restoreStatusIsError = false;
+    restoreStatusMessage = "Loaded backup into form";
+  });
+
+  auto confirmDiscardButton = Button("Yes, Discard", [&] {
+    exitAction = ExitAction::Discard;
+    showDiscardConfirm = false;
+    closeScreen();
+  });
+  auto cancelDiscardButton = Button("Cancel", [&] {
+    showDiscardConfirm = false;
+  });
+
+  Component discardConfirmContainer = Container::Vertical({
+    confirmDiscardButton,
+    cancelDiscardButton
+  });
+  Component discardConfirmDialog = Renderer(discardConfirmContainer, [&] {
+    return window(
+      text("Discard Unsaved Changes?") | bold | center,
+      vbox({
+        text("You have unsaved edits."),
+        text("Discard and exit anyway?") | dim,
+        separator(),
+        hbox(confirmDiscardButton->Render(), text("  "), cancelDiscardButton->Render()) | center,
+      })
+    ) | center;
+  });
   
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
   Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
@@ -263,27 +365,20 @@ int main() {
       });
     }
 
-    const bool hasUnsavedChanges =
-      tcpSendSelected != initialTcpSendSelected ||
-      tcpRecvSelected != initialTcpRecvSelected ||
-      rudpSendSelected != initialRudpSendSelected ||
-      rudpRecvSelected != initialRudpRecvSelected ||
-      unicastSendSelected != initialUnicastSendSelected ||
-      unicastRecvSelected != initialUnicastRecvSelected ||
-      multicastSendSelected != initialMulticastSendSelected ||
-      multicastRecvSelected != initialMulticastRecvSelected ||
-      multicastSendTTL != initialMulticastSendTTL ||
-      sendGroups != initialSendGroups ||
-      recvGroups != initialRecvGroups ||
-      discoveryServers != initialDiscoveryServers ||
-      ips != initialIps ||
-      machineName != initialMachineName ||
-      multicastSendNetmask != initialMulticastSendNetmask ||
-      multicastSendNetprefix != initialMulticastSendNetprefix;
+    const bool dirty = hasUnsavedChanges();
 
-    Element changeStatus = hasUnsavedChanges
+    Element changeStatus = dirty
       ? text("Unsaved changes") | bold | color(Color::Yellow) | center
       : text("All changes saved") | color(Color::Green) | center;
+
+    const bool backupExists = std::filesystem::exists(backupConfigPath);
+    Element backupStatus = backupExists
+      ? text("Backup file found") | color(Color::Green)
+      : text("No backup file found") | color(Color::Yellow);
+
+    Element restoreLoadStatus = restoreStatusIsError
+      ? text(restoreStatusMessage) | color(Color::Red)
+      : text(restoreStatusMessage) | color(Color::Green);
 
     auto layout = vbox({
       text(""),
@@ -386,7 +481,23 @@ int main() {
 
       separator(),
 
-      changeStatus,
+      border(
+        hbox(
+          vbox(
+            text("Status") | bold | center,
+            separator(),
+            hbox(text(" Changes "), separator(), text("  "), changeStatus, text("  ")),
+            hbox(text("         "), separator(), text("  "), text("  "), text("  "))
+          ) | flex,
+          separator(),
+          vbox(
+            text("Backup") | bold | center,
+            separator(),
+            hbox(text(" Status  "), separator(), text("  "), backupStatus, text("  ")),
+            hbox(text(" Restore "), separator(), text("  "), restoreLoadStatus, text("  "))
+          ) | flex
+        )
+      ) | center,
 
       hbox(
         saveAndExitButton->Render(),
@@ -404,36 +515,14 @@ int main() {
     return layout;  
   });
 
-  screen.Loop(renderer);
+  auto app = Modal(renderer, discardConfirmDialog, &showDiscardConfirm);
+
+  screen.Loop(app);
   
   // End TUI
 
   if (exitAction == ExitAction::Discard) {
     cout << "Changes discarded. Existing config was not modified." << endl;
-    return 0;
-  }
-
-  if (exitAction == ExitAction::RestoreBackup) {
-    const std::filesystem::path backupConfigPath = configPath.string() + ".bak";
-    if (!std::filesystem::exists(backupConfigPath)) {
-      cout << "No backup config found at " << backupConfigPath << "." << endl;
-      return 0;
-    }
-
-    std::error_code restoreError;
-    std::filesystem::copy_file(
-      backupConfigPath,
-      configPath,
-      std::filesystem::copy_options::overwrite_existing,
-      restoreError
-    );
-    if (restoreError) {
-      std::cerr << "Could not restore backup config from " << backupConfigPath << ": "
-                << restoreError.message() << endl;
-      return 1;
-    }
-
-    cout << "Backup config restored from " << backupConfigPath << "." << endl;
     return 0;
   }
 
@@ -467,7 +556,6 @@ int main() {
   outputFile.close();
 
   if (std::filesystem::exists(configPath)) {
-    const std::filesystem::path backupConfigPath = configPath.string() + ".bak";
     std::error_code backupError;
     std::filesystem::copy_file(
       configPath,
