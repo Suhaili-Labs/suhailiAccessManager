@@ -2,8 +2,7 @@
 
 Terminal UI tool for managing the NDI configuration file on Linux.
 
-<img width="1000" height="885" alt="screenshot-2026-07-23_16-57-57" src="https://github.com/user-attachments/assets/ce6226cb-5e15-4f20-be1d-a4771d939b65" />
-
+<img width="893" height="640" alt="Screenshot 2026-07-23 at 5 26 20 PM" src="https://github.com/user-attachments/assets/22028a80-d134-453f-a580-9f0cbf09af8c" />
 
 
 This project edits the NDI SDK config file:
