@@ -108,14 +108,24 @@ int main() {
 
 
   auto screen = ScreenInteractive::Fullscreen();
-  bool saveRequested = false;
+  enum class ExitAction {
+    Discard,
+    Save,
+    RestoreBackup,
+  };
+
+  ExitAction exitAction = ExitAction::Discard;
   auto closeScreen = screen.ExitLoopClosure();
   auto saveAndExitButton = Button("Save & Exit", [&] {
-    saveRequested = true;
+    exitAction = ExitAction::Save;
     closeScreen();
   });
   auto discardAndExitButton = Button("Discard & Exit", [&] {
-    saveRequested = false;
+    exitAction = ExitAction::Discard;
+    closeScreen();
+  });
+  auto restoreBackupButton = Button("Restore Backup", [&] {
+    exitAction = ExitAction::RestoreBackup;
     closeScreen();
   });
   
@@ -231,7 +241,8 @@ int main() {
     modesRowContainer,
     multicastContainer,
     saveAndExitButton,
-    discardAndExitButton
+    discardAndExitButton,
+    restoreBackupButton
   });
 
   
@@ -377,7 +388,13 @@ int main() {
 
       changeStatus,
 
-      hbox(saveAndExitButton->Render(), text("  "), discardAndExitButton->Render()) | center,
+      hbox(
+        saveAndExitButton->Render(),
+        text("  "),
+        discardAndExitButton->Render(),
+        text("  "),
+        restoreBackupButton->Render()
+      ) | center,
       
       separator(),
 
@@ -391,8 +408,32 @@ int main() {
   
   // End TUI
 
-  if (!saveRequested) {
+  if (exitAction == ExitAction::Discard) {
     cout << "Changes discarded. Existing config was not modified." << endl;
+    return 0;
+  }
+
+  if (exitAction == ExitAction::RestoreBackup) {
+    const std::filesystem::path backupConfigPath = configPath.string() + ".bak";
+    if (!std::filesystem::exists(backupConfigPath)) {
+      cout << "No backup config found at " << backupConfigPath << "." << endl;
+      return 0;
+    }
+
+    std::error_code restoreError;
+    std::filesystem::copy_file(
+      backupConfigPath,
+      configPath,
+      std::filesystem::copy_options::overwrite_existing,
+      restoreError
+    );
+    if (restoreError) {
+      std::cerr << "Could not restore backup config from " << backupConfigPath << ": "
+                << restoreError.message() << endl;
+      return 1;
+    }
+
+    cout << "Backup config restored from " << backupConfigPath << "." << endl;
     return 0;
   }
 
@@ -406,14 +447,48 @@ int main() {
   multicastSendSet(multicastSendSelected, multicastSendNetmask, multicastSendNetprefix, multicastSendTTL, ndiConfig);
   multicastRecvSet(multicastRecvSelected, ndiConfig);
 
-  ofstream outputFile(configPath);
+  const std::filesystem::path tempConfigPath = configPath.string() + ".tmp";
+
+  ofstream outputFile(tempConfigPath);
   if (!outputFile.is_open()) {
-    std::cerr << "Could not open NDI Config JSON: " << configPath << endl;
+    std::cerr << "Could not open temp NDI config JSON: " << tempConfigPath << endl;
     return 1;
   }
 
   outputFile << ndiConfig.dump(2);
+  outputFile.flush();
+  if (!outputFile.good()) {
+    std::cerr << "Failed to write temp NDI config JSON: " << tempConfigPath << endl;
+    outputFile.close();
+    std::error_code cleanupError;
+    std::filesystem::remove(tempConfigPath, cleanupError);
+    return 1;
+  }
   outputFile.close();
+
+  if (std::filesystem::exists(configPath)) {
+    const std::filesystem::path backupConfigPath = configPath.string() + ".bak";
+    std::error_code backupError;
+    std::filesystem::copy_file(
+      configPath,
+      backupConfigPath,
+      std::filesystem::copy_options::overwrite_existing,
+      backupError
+    );
+    if (backupError) {
+      std::cerr << "Warning: could not create NDI config backup at " << backupConfigPath
+                << ": " << backupError.message() << endl;
+    }
+  }
+
+  std::error_code renameError;
+  std::filesystem::rename(tempConfigPath, configPath, renameError);
+  if (renameError) {
+    std::cerr << "Could not atomically replace NDI config JSON: " << renameError.message() << endl;
+    std::error_code cleanupError;
+    std::filesystem::remove(tempConfigPath, cleanupError);
+    return 1;
+  }
 
   return 0;
 
