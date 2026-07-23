@@ -1,4 +1,5 @@
-<img width="800" height="800" alt="logo" src="https://github.com/user-attachments/assets/b2f48237-c952-41ff-a864-66b63613e504" />
+<img width="3360" height="840" alt="et_header_photo_logo" src="https://github.com/user-attachments/assets/612d2fac-a7f5-4c3e-8228-d7b9e7799979" />
+
 
 # Suhaili Labs Access Manager for NDI
 
