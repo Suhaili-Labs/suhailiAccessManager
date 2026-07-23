@@ -1,9 +1,9 @@
+
 # Suhaili Labs Access Manager for NDI
 
 Terminal UI tool for managing the NDI configuration file on Linux.
 
-<img width="893" height="640" alt="Screenshot 2026-07-23 at 5 26 20 PM" src="https://github.com/user-attachments/assets/22028a80-d134-453f-a580-9f0cbf09af8c" />
-
+<img width="867" height="634" alt="Screenshot 2026-07-23 at 5 28 07 PM" src="https://github.com/user-attachments/assets/403810b7-acde-457c-8530-daa66b9374e0" />
 
 This project edits the NDI SDK config file:
 
