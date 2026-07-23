@@ -86,7 +86,16 @@ int main() {
 
 
   auto screen = ScreenInteractive::Fullscreen();
-  auto exitButton = Button("Save & Exit", screen.ExitLoopClosure());
+  bool saveRequested = false;
+  auto closeScreen = screen.ExitLoopClosure();
+  auto saveAndExitButton = Button("Save & Exit", [&] {
+    saveRequested = true;
+    closeScreen();
+  });
+  auto discardAndExitButton = Button("Discard & Exit", [&] {
+    saveRequested = false;
+    closeScreen();
+  });
   
   vector<string> toggleEntries = {
     "  Disable  ",
@@ -126,6 +135,23 @@ int main() {
   string machineName = ndiConfig["ndi"]["machinename"];  
   string multicastSendNetmask = ndiConfig["ndi"]["multicast"]["send"]["netmask"];
   string multicastSendNetprefix = ndiConfig["ndi"]["multicast"]["send"]["netprefix"];
+
+  const int initialTcpSendSelected = tcpSendSelected;
+  const int initialTcpRecvSelected = tcpRecvSelected;
+  const int initialRudpSendSelected = rudpSendSelected;
+  const int initialRudpRecvSelected = rudpRecvSelected;
+  const int initialUnicastSendSelected = unicastSendSelected;
+  const int initialUnicastRecvSelected = unicastRecvSelected;
+  const int initialMulticastSendSelected = multicastSendSelected;
+  const int initialMulticastRecvSelected = multicastRecvSelected;
+  const int initialMulticastSendTTL = multicastSendTTL;
+  const string initialSendGroups = sendGroups;
+  const string initialRecvGroups = recvGroups;
+  const string initialDiscoveryServers = discoveryServers;
+  const string initialIps = ips;
+  const string initialMachineName = machineName;
+  const string initialMulticastSendNetmask = multicastSendNetmask;
+  const string initialMulticastSendNetprefix = multicastSendNetprefix;
   
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
   Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
@@ -182,11 +208,34 @@ int main() {
     recvGroupInput,
     modesRowContainer,
     multicastContainer,
-    exitButton
+    saveAndExitButton,
+    discardAndExitButton
   });
 
   
   auto renderer = Renderer(mainContainer, [&] {
+    const bool hasUnsavedChanges =
+      tcpSendSelected != initialTcpSendSelected ||
+      tcpRecvSelected != initialTcpRecvSelected ||
+      rudpSendSelected != initialRudpSendSelected ||
+      rudpRecvSelected != initialRudpRecvSelected ||
+      unicastSendSelected != initialUnicastSendSelected ||
+      unicastRecvSelected != initialUnicastRecvSelected ||
+      multicastSendSelected != initialMulticastSendSelected ||
+      multicastRecvSelected != initialMulticastRecvSelected ||
+      multicastSendTTL != initialMulticastSendTTL ||
+      sendGroups != initialSendGroups ||
+      recvGroups != initialRecvGroups ||
+      discoveryServers != initialDiscoveryServers ||
+      ips != initialIps ||
+      machineName != initialMachineName ||
+      multicastSendNetmask != initialMulticastSendNetmask ||
+      multicastSendNetprefix != initialMulticastSendNetprefix;
+
+    Element changeStatus = hasUnsavedChanges
+      ? text("Unsaved changes") | bold | color(Color::Yellow) | center
+      : text("All changes saved") | color(Color::Green) | center;
+
     auto layout = vbox({
       text(""),
       text(titleL1) | center,
@@ -288,7 +337,9 @@ int main() {
 
       separator(),
 
-      hbox(exitButton->Render()) | center,
+      changeStatus,
+
+      hbox(saveAndExitButton->Render(), text("  "), discardAndExitButton->Render()) | center,
       
       separator(),
 
@@ -301,6 +352,11 @@ int main() {
   screen.Loop(renderer);
   
   // End TUI
+
+  if (!saveRequested) {
+    cout << "Changes discarded. Existing config was not modified." << endl;
+    return 0;
+  }
 
   discoveryServerSet(discoveryServers, ndiConfig);
   discoveryIpsSet(ips, ndiConfig);
