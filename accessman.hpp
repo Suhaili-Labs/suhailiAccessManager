@@ -7,16 +7,12 @@
 #include <string>
 #include "json.hpp"
 
-using std::string;
-using nlohmann::json;
-
-
-inline string getHomeDir() {
+inline std::string getHomeDir() {
 	const char* home = std::getenv("HOME");
-	return home ? string(home) : string("");
+	return home ? std::string(home) : std::string("");
 }
 
-inline void multicastGenConfig(json& ndiConfig) {
+inline void multicastGenConfig(nlohmann::json& ndiConfig) {
 	ndiConfig["ndi"]["multicast"] = {
 		{"recv", {{"enable", false}}},
 		{"send", {
@@ -28,15 +24,15 @@ inline void multicastGenConfig(json& ndiConfig) {
 	};
 }
 
-inline bool configExists(const string& filePath) {
+inline bool configExists(const std::string& filePath) {
 	return std::filesystem::exists(filePath);
 }
 
-inline void machineNameSet(string name, json& ndiConfig) {
+inline void machineNameSet(std::string name, nlohmann::json& ndiConfig) {
 	ndiConfig["ndi"]["machinename"] = name;
 }
 
-inline void tcpSet(bool send, bool recv, json& ndiConfig) {
+inline void tcpSet(bool send, bool recv, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("tcp")) {
 		ndiConfig["ndi"]["tcp"] = {
 			{"recv", {{"enable", false}}},
@@ -55,7 +51,7 @@ inline void tcpSet(bool send, bool recv, json& ndiConfig) {
 	ndiConfig["ndi"]["tcp"]["recv"]["enable"] = recv;
 }
 
-inline void rudpSet(bool send, bool recv, json& ndiConfig) {
+inline void rudpSet(bool send, bool recv, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("rudp")) {
 		ndiConfig["ndi"]["rudp"] = {
 			{"recv", {{"enable", false}}},
@@ -74,7 +70,7 @@ inline void rudpSet(bool send, bool recv, json& ndiConfig) {
 	ndiConfig["ndi"]["rudp"]["recv"]["enable"] = recv;
 }
 
-inline void unicastSet(bool send, bool recv, json& ndiConfig) {
+inline void unicastSet(bool send, bool recv, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("unicast")) {
 		ndiConfig["ndi"]["unicast"] = {
 			{"recv", {{"enable", false}}},
@@ -93,7 +89,7 @@ inline void unicastSet(bool send, bool recv, json& ndiConfig) {
 	ndiConfig["ndi"]["unicast"]["recv"]["enable"] = recv;
 }
 
-inline void multicastRecvSet(bool recv, json& ndiConfig) {
+inline void multicastRecvSet(bool recv, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("multicast")) {
 		multicastGenConfig(ndiConfig);
 	}
@@ -105,7 +101,7 @@ inline void multicastRecvSet(bool recv, json& ndiConfig) {
 	ndiConfig["ndi"]["multicast"]["recv"]["enable"] = recv;
 }
 
-inline void multicastSendSet(bool send, string netmask, string netprefix, int ttl, json& ndiConfig) {
+inline void multicastSendSet(bool send, std::string netmask, std::string netprefix, int ttl, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("multicast")) {
 		multicastGenConfig(ndiConfig);
 	}
@@ -125,7 +121,7 @@ inline void multicastSendSet(bool send, string netmask, string netprefix, int tt
 	ndiConfig["ndi"]["multicast"]["send"]["ttl"] = ttl;
 }
 
-inline void groupsSet(string sendGroups, string recvGroups, json& ndiConfig) {
+inline void groupsSet(std::string sendGroups, std::string recvGroups, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("groups")) {
 		ndiConfig["ndi"]["groups"] = {{"recv", "Public,"}, {"send", "Public,"}};
 	}
@@ -134,7 +130,7 @@ inline void groupsSet(string sendGroups, string recvGroups, json& ndiConfig) {
 	ndiConfig["ndi"]["groups"]["send"] = sendGroups;
 }
 
-inline void discoveryServerSet(string discoveryServers, json& ndiConfig) {
+inline void discoveryServerSet(std::string discoveryServers, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("networks")) {
 		ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
 	}
@@ -142,7 +138,7 @@ inline void discoveryServerSet(string discoveryServers, json& ndiConfig) {
 	ndiConfig["ndi"]["networks"]["discovery"] = discoveryServers;
 }
 
-inline void discoveryIpsSet(string ips, json& ndiConfig) {
+inline void discoveryIpsSet(std::string ips, nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("networks")) {
 		ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
 	}
@@ -150,7 +146,7 @@ inline void discoveryIpsSet(string ips, json& ndiConfig) {
 	ndiConfig["ndi"]["networks"]["ips"] = ips;
 }
 
-inline void generateMissingConfig(json& ndiConfig) {
+inline void generateMissingConfig(nlohmann::json& ndiConfig) {
 	if (!ndiConfig["ndi"].contains("networks")) {
 		ndiConfig["ndi"]["networks"] = {{"discovery", ""}, {"ips", ""}};
 	}

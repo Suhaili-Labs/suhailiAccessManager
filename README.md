@@ -47,10 +47,10 @@ Tested on Ubuntu 24.04 and Arch Linux.
 
 - Linux
 - C++ compiler (`g++`)
-- FTXUI static libraries available at:
-	- `/usr/lib/libftxui-component.a`
-	- `/usr/lib/libftxui-dom.a`
-	- `/usr/lib/libftxui-screen.a`
+- `cmake`
+- `git`
+- `make`
+- Network access on first build (the Makefile caches and builds static FTXUI outside the repo)
 - C++17 or newer recommended
 
 `json.hpp` (nlohmann/json single-header) is already included in this repository.
@@ -70,6 +70,12 @@ This generates:
 
 - `build/accessman`
 
+Note: the first build downloads and compiles static FTXUI into:
+
+- `~/.cache/suhailiAccessManager/ftxui`
+
+This keeps FTXUI out of the repository while still producing a dependency-free static binary.
+
 Clean build artifacts:
 
 ```bash
@@ -77,27 +83,29 @@ cd build
 make -f makefile clean
 ```
 
-## Run
+## Installation
 
-From project root:
+After building, you can run the app either locally from the build folder or install it system-wide.
 
-```bash
-./build/accessman
-```
-
-Use keyboard navigation in the TUI to adjust values, then exit using the `Exit` button. The config is written back to `~/.ndi/ndi-config.v1.json` when the program exits.
-
-To make `accessman` available system-wide, copy the binary to `/usr/local/bin`:
+Option 1: Run locally (no install)
 
 ```bash
-sudo cp build/accessman /usr/local/bin/accessman
+./accessman
 ```
 
-It can then be run from anywhere with:
+Option 2: Install system-wide
+
+```bash
+sudo cp accessman /usr/local/bin/accessman
+```
+
+Then run it from anywhere:
 
 ```bash
 accessman
 ```
+
+Use keyboard navigation in the TUI to adjust values, then exit using the `Exit` button. The config is written back to `~/.ndi/ndi-config.v1.json` when the program exits.
 
 ## Project Structure
 
@@ -110,7 +118,8 @@ accessman
 ## Troubleshooting
 
 - Linker errors for FTXUI:
-	- Ensure static FTXUI libraries exist in `/usr/lib` with the exact names used in `build/makefile`.
+	- Ensure `git`, `cmake`, and network access are available for first-time cache population.
+	- If needed, remove `~/.cache/suhailiAccessManager/ftxui` and rebuild.
 - Config not updating:
 	- Confirm write permissions for `~/.ndi/ndi-config.v1.json`.
 - Program starts but config seems incomplete:

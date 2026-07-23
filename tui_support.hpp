@@ -16,10 +16,6 @@
 
 namespace tui_support {
 
-using std::string;
-using std::vector;
-using nlohmann::json;
-
 struct ConfigPaths {
   std::filesystem::path ndiDir;
   std::filesystem::path configPath;
@@ -53,17 +49,17 @@ inline bool ensureConfigDirectory(const std::filesystem::path& ndiDir) {
   return true;
 }
 
-inline json loadConfigWithDefaults(const std::filesystem::path& configPath) {
-  json ndiConfig = json::object();
+inline nlohmann::json loadConfigWithDefaults(const std::filesystem::path& configPath) {
+  nlohmann::json ndiConfig = nlohmann::json::object();
 
   std::ifstream inputFile(configPath);
   if (inputFile.is_open()) {
     try {
       inputFile >> ndiConfig;
-    } catch (const json::exception& e) {
+    } catch (const nlohmann::json::exception& e) {
       std::cerr << "Invalid NDI Config JSON at " << configPath << ": " << e.what() << std::endl;
       std::cout << "Using default config values for this run." << std::endl;
-      ndiConfig = json::object();
+      ndiConfig = nlohmann::json::object();
     }
     inputFile.close();
   } else {
@@ -72,16 +68,16 @@ inline json loadConfigWithDefaults(const std::filesystem::path& configPath) {
 
   try {
     generateMissingConfig(ndiConfig);
-  } catch (const json::exception& e) {
+  } catch (const nlohmann::json::exception& e) {
     std::cerr << "Could not normalize NDI config, resetting to defaults: " << e.what() << std::endl;
-    ndiConfig = json::object();
+    ndiConfig = nlohmann::json::object();
     generateMissingConfig(ndiConfig);
   }
 
   return ndiConfig;
 }
 
-inline bool loadBackupConfig(const std::filesystem::path& backupConfigPath, json& backupConfig, string& errorMessage) {
+inline bool loadBackupConfig(const std::filesystem::path& backupConfigPath, nlohmann::json& backupConfig, std::string& errorMessage) {
   if (!std::filesystem::exists(backupConfigPath)) {
     errorMessage = "No backup file found";
     return false;
@@ -96,7 +92,7 @@ inline bool loadBackupConfig(const std::filesystem::path& backupConfigPath, json
   try {
     backupInputFile >> backupConfig;
     generateMissingConfig(backupConfig);
-  } catch (const json::exception&) {
+  } catch (const nlohmann::json::exception&) {
     errorMessage = "Backup file is invalid JSON";
     return false;
   }
@@ -107,8 +103,8 @@ inline bool loadBackupConfig(const std::filesystem::path& backupConfigPath, json
 inline bool saveConfigAtomicallyWithBackup(
   const std::filesystem::path& configPath,
   const std::filesystem::path& backupConfigPath,
-  const json& ndiConfig,
-  string& errorMessage
+  const nlohmann::json& ndiConfig,
+  std::string& errorMessage
  ) {
   const std::filesystem::path tempConfigPath = configPath.string() + ".tmp";
 
@@ -155,20 +151,20 @@ inline bool saveConfigAtomicallyWithBackup(
   return true;
 }
 
-inline string trim(const string& value) {
-  const string whitespace = " \t\n\r";
-  const size_t start = value.find_first_not_of(whitespace);
-  if (start == string::npos) {
+inline std::string trim(const std::string& value) {
+  const std::string whitespace = " \t\n\r";
+  const std::size_t start = value.find_first_not_of(whitespace);
+  if (start == std::string::npos) {
     return "";
   }
-  const size_t end = value.find_last_not_of(whitespace);
+  const std::size_t end = value.find_last_not_of(whitespace);
   return value.substr(start, end - start + 1);
 }
 
-inline vector<string> splitCsv(const string& value) {
-  vector<string> tokens;
+inline std::vector<std::string> splitCsv(const std::string& value) {
+  std::vector<std::string> tokens;
   std::stringstream ss(value);
-  string token;
+  std::string token;
   while (std::getline(ss, token, ',')) {
     token = trim(token);
     if (!token.empty()) {
@@ -178,9 +174,9 @@ inline vector<string> splitCsv(const string& value) {
   return tokens;
 }
 
-inline bool isValidIPv4(const string& value) {
+inline bool isValidIPv4(const std::string& value) {
   std::stringstream ss(value);
-  string part;
+  std::string part;
   int count = 0;
   while (std::getline(ss, part, '.')) {
     if (part.empty() || part.size() > 3) {
@@ -200,13 +196,13 @@ inline bool isValidIPv4(const string& value) {
   return count == 4;
 }
 
-inline bool isValidNetmask(const string& value) {
+inline bool isValidNetmask(const std::string& value) {
   if (!isValidIPv4(value)) {
     return false;
   }
 
   std::stringstream ss(value);
-  string part;
+  std::string part;
   uint32_t mask = 0;
   while (std::getline(ss, part, '.')) {
     mask = (mask << 8) | static_cast<uint32_t>(std::stoi(part));
@@ -226,20 +222,20 @@ inline bool isValidNetmask(const string& value) {
   return true;
 }
 
-inline bool isValidMulticastPrefix(const string& value) {
+inline bool isValidMulticastPrefix(const std::string& value) {
   if (!isValidIPv4(value)) {
     return false;
   }
 
   std::stringstream ss(value);
-  string first;
+  std::string first;
   std::getline(ss, first, '.');
   int firstOctet = std::stoi(first);
   return firstOctet >= 224 && firstOctet <= 239;
 }
 
-inline bool validateCsvIPv4(const string& value) {
-  for (const string& token : splitCsv(value)) {
+inline bool validateCsvIPv4(const std::string& value) {
+  for (const std::string& token : splitCsv(value)) {
     if (!isValidIPv4(token)) {
       return false;
     }

@@ -578,8 +578,6 @@ int main() {
 
         ) | center,
 
-      separator(),
-
       border(
         hbox(
           vbox(
@@ -605,12 +603,12 @@ int main() {
         text("  "),
         restoreBackupButton->Render()
       ) | center,
-      
-      separator(),
 
+      text(""),
+      
       text("Navigation: Up/Down/Left/Right move focus | Tab toggles control") | dim | center,
 
-      separator(),
+      text(""),
 
       text("By Suhaili Labs | NDI® is a registered trademark of Vizrt NDI AB") | dim | center,
 
