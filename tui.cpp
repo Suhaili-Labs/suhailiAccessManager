@@ -197,11 +197,9 @@ int main() {
 
 // TUI BELOW
 
-  string titleL1 = "█▀▀ █ █ █ █ ▄▀█ █ █   █";
-  string titleL2 = "▄▄█ █▄█ █▀█ █▀█ █ █▄▄ █";
-  string titleL3 = "";
-  string titleL4 = "▄▀█ █▀▀ █▀▀ █▀▀ █▀▀ █▀▀   █▀▄▀█ ▄▀█ █▄ █ ▄▀█ █▀▀ █▀▀ █▀█";
-  string titleL5 = "█▀█ █▄▄ █▄▄ ██▄ ▄▄█ ▄▄█   █ ▀ █ █▀█ █ ▀█ █▀█ █▄█ ██▄ █▀▄";
+
+  string titleL1 = " ▄▀█ █▀▀ █▀▀ █▀▀ █▀▀ █▀▀   █▀▄▀█ ▄▀█ █▄ █ ▄▀█ █▀▀ █▀▀ █▀█";
+  string titleL2 = " █▀█ █▄▄ █▄▄ ██▄ ▄▄█ ▄▄█   █ ▀ █ █▀█ █ ▀█ █▀█ █▄█ ██▄ █▀▄";
 
 
 
@@ -218,6 +216,7 @@ int main() {
   bool restoreStatusIsError = false;
   string validationStatusMessage = "Ready";
   bool validationStatusIsError = false;
+  bool validationAttempted = false;
   std::function<bool()> hasUnsavedChanges = [] {
     return false;
   };
@@ -226,6 +225,7 @@ int main() {
   };
   auto closeScreen = screen.ExitLoopClosure();
   auto saveAndExitButton = Button("Save & Exit", [&] {
+    validationAttempted = true;
     string validationError;
     if (!validateBeforeSave(validationError)) {
       validationStatusIsError = true;
@@ -413,12 +413,14 @@ int main() {
     return window(
       text("Discard Unsaved Changes?") | bold | center,
       vbox({
-        text("You have unsaved edits."),
-        text("Discard and exit anyway?") | dim,
+        text(""),
+        hbox(text("   "), text("You have unsaved edits."), text("   ")),
+        hbox(text("   "), text("Discard and exit anyway?") | dim, text("   ")),
         separator(),
-        hbox(confirmDiscardButton->Render(), text("  "), cancelDiscardButton->Render()) | center,
+        hbox(text("   "), confirmDiscardButton->Render(), text("  "), cancelDiscardButton->Render(), text("   ")) | center,
+        text(""),
       })
-    ) | center;
+    ) | color(Color::White) | bgcolor(Color::RGB(95, 12, 12)) | center;
   });
   
   Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
@@ -510,6 +512,43 @@ int main() {
       ? text("Backup file found") | color(Color::Green)
       : text("No backup file found") | color(Color::Yellow);
 
+    const string netmaskForValidation = trim(multicastSendNetmask);
+    const string netprefixForValidation = trim(multicastSendNetprefix);
+
+    const bool changedDiscovery = discoveryServers != initialDiscoveryServers;
+    const bool changedIps = ips != initialIps;
+    const bool changedMachineName = machineName != initialMachineName;
+    const bool changedSendGroups = sendGroups != initialSendGroups;
+    const bool changedRecvGroups = recvGroups != initialRecvGroups;
+    const bool changedTcpSend = tcpSendSelected != initialTcpSendSelected;
+    const bool changedTcpRecv = tcpRecvSelected != initialTcpRecvSelected;
+    const bool changedRudpSend = rudpSendSelected != initialRudpSendSelected;
+    const bool changedRudpRecv = rudpRecvSelected != initialRudpRecvSelected;
+    const bool changedUnicastSend = unicastSendSelected != initialUnicastSendSelected;
+    const bool changedUnicastRecv = unicastRecvSelected != initialUnicastRecvSelected;
+    const bool changedMulticastSend = multicastSendSelected != initialMulticastSendSelected;
+    const bool changedMulticastRecv = multicastRecvSelected != initialMulticastRecvSelected;
+    const bool changedMulticastTtl = multicastSendTTL != initialMulticastSendTTL;
+    const bool changedNetmask = multicastSendNetmask != initialMulticastSendNetmask;
+    const bool changedNetprefix = multicastSendNetprefix != initialMulticastSendNetprefix;
+
+    const bool invalidDiscovery = validationAttempted && !validateCsvIPv4(discoveryServers);
+    const bool invalidIps = validationAttempted && !validateCsvIPv4(ips);
+    const bool invalidNetmask =
+      validationAttempted && !netmaskForValidation.empty() && !isValidNetmask(netmaskForValidation);
+    const bool invalidNetprefix =
+      validationAttempted && !netprefixForValidation.empty() && !isValidMulticastPrefix(netprefixForValidation);
+
+    auto colorizeRow = [](Element row, bool changed, bool invalid) {
+      if (invalid) {
+        return row | color(Color::Red);
+      }
+      if (changed) {
+        return row | color(Color::Yellow);
+      }
+      return row;
+    };
+
     Element restoreLoadStatus = restoreStatusIsError
       ? text(restoreStatusMessage) | color(Color::Red)
       : text(restoreStatusMessage) | color(Color::Green);
@@ -522,9 +561,6 @@ int main() {
       text(""),
       text(titleL1) | center,
       text(titleL2) | center,
-      text(titleL3) | center,
-      text(titleL4) | center,
-      text(titleL5) | center,
       text(""),
       text("A TUI Access Manager for NDI on Linux") | bold | center,
       text("Version 1.0") | bold | center,
@@ -533,7 +569,7 @@ int main() {
         border(vbox(
           text("    Machine Name    ") | bold | center,
           separator(),
-          machineNameInput->Render()
+          colorizeRow(hbox(text(" Name "), separator(), machineNameInput->Render()), changedMachineName, false)
           ) | center
         )
       ) | center,
@@ -542,15 +578,23 @@ int main() {
         border(vbox(
           text("                   Network                  ") | bold | center,
           separator(),
-          hbox(text(" Discovery "), separator(), discoveryServersInput->Render()),
-          hbox(text("    IPs    "), separator(), ipsInput->Render())
+          colorizeRow(
+            hbox(text(" Discovery "), separator(), discoveryServersInput->Render()),
+            changedDiscovery,
+            invalidDiscovery
+          ),
+          colorizeRow(
+            hbox(text("    IPs    "), separator(), ipsInput->Render()),
+            changedIps,
+            invalidIps
+          )
           ) | center
         ),
       border(vbox(
           text("                    Groups                   ") | bold | center,
           separator(),
-          hbox(text(" Send "), separator(), sendGroupInput->Render()),
-          hbox(text(" Recv "), separator(), recvGroupInput->Render())
+          colorizeRow(hbox(text(" Send "), separator(), sendGroupInput->Render()), changedSendGroups, false),
+          colorizeRow(hbox(text(" Recv "), separator(), recvGroupInput->Render()), changedRecvGroups, false)
           ) | center
         )
       ) | center,
@@ -559,20 +603,20 @@ int main() {
         border(vbox(
           text("Multi-TCP") | bold | center,
           separator(),
-          hbox(text(" Send ") ,separator(),tcpSendToggle->Render()),
-          hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render())
+          colorizeRow(hbox(text(" Send ") ,separator(),tcpSendToggle->Render()), changedTcpSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render()), changedTcpRecv, false)
         ) | center),
         border(vbox(
           text("RUDP") | bold | center,
           separator(), 
-          hbox(text(" Send ") ,separator(),rudpSendToggle->Render()),
-          hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render())
+          colorizeRow(hbox(text(" Send ") ,separator(),rudpSendToggle->Render()), changedRudpSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render()), changedRudpRecv, false)
         ) | center),
         border(vbox(
           text("Unicast") | bold | center, 
           separator(), 
-          hbox(text(" Send ") ,separator(),unicastSendToggle->Render()),
-          hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render())
+          colorizeRow(hbox(text(" Send ") ,separator(),unicastSendToggle->Render()), changedUnicastSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render()), changedUnicastRecv, false)
         ) | center
       ) | center ) | center,
 
@@ -583,8 +627,16 @@ int main() {
             separator(),
             hbox(
               vbox(
-                hbox(text(" Send ") | bold | center, separator(),multicastSendToggle->Render()),
-                hbox(text(" Recv ") | bold | center, separator(),multicastRecvToggle->Render())
+                colorizeRow(
+                  hbox(text(" Send ") | bold | center, separator(),multicastSendToggle->Render()),
+                  changedMulticastSend,
+                  false
+                ),
+                colorizeRow(
+                  hbox(text(" Recv ") | bold | center, separator(),multicastRecvToggle->Render()),
+                  changedMulticastRecv,
+                  false
+                )
                 )
               )
             ) | center
@@ -596,8 +648,16 @@ int main() {
           separator(),
           hbox(
             vbox( 
-                hbox(text("  Netmask  ") | bold | center, separator(),multicastSendNetmaskInput->Render()),
-                hbox(text(" NetPrefix ") | bold | center, separator(),multicastSendNetprefixInput->Render())
+                colorizeRow(
+                  hbox(text("  Netmask  ") | bold | center, separator(),multicastSendNetmaskInput->Render()),
+                  changedNetmask,
+                  invalidNetmask
+                ),
+                colorizeRow(
+                  hbox(text(" NetPrefix ") | bold | center, separator(),multicastSendNetprefixInput->Render()),
+                  changedNetprefix,
+                  invalidNetprefix
+                )
                 )
               )
             )
@@ -609,7 +669,11 @@ int main() {
           separator(),
           hbox(
             vbox( 
-                hbox(text(" TTL ") | bold | center, separator(),multicastSendTTLToggle->Render())
+                colorizeRow(
+                  hbox(text(" TTL ") | bold | center, separator(),multicastSendTTLToggle->Render()),
+                  changedMulticastTtl,
+                  false
+                )
                 ) | center
               )
             ) | center
@@ -647,6 +711,10 @@ int main() {
       
       separator(),
 
+      text("Navigation: Up/Down/Left/Right move focus | Tab toggles control") | dim | center,
+
+      separator(),
+
       text("By Suhaili Labs | NDI® is a registered trademark of Vizrt NDI AB") | dim | center,
 
     });
@@ -654,6 +722,24 @@ int main() {
   });
 
   auto app = Modal(renderer, discardConfirmDialog, &showDiscardConfirm);
+
+  app = CatchEvent(app, [&](Event event) {
+    if (event == Event::ArrowLeft) {
+      if (showDiscardConfirm) {
+        return discardConfirmContainer->OnEvent(Event::ArrowUp);
+      }
+      return mainContainer->OnEvent(Event::ArrowUp);
+    }
+
+    if (event == Event::ArrowRight) {
+      if (showDiscardConfirm) {
+        return discardConfirmContainer->OnEvent(Event::ArrowDown);
+      }
+      return mainContainer->OnEvent(Event::ArrowDown);
+    }
+
+    return false;
+  });
 
   screen.Loop(app);
   

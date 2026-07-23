@@ -24,6 +24,8 @@ All notable changes to this project are documented in this file.
 - The UI now uses a wider `Status` panel for change-state and backup status, with `Restore Backup` available in the bottom action row.
 - `Save & Exit` now blocks and shows an inline status error when validation fails.
 - Blank multicast netmask/netprefix are now valid and save as defaults (`255.255.0.0` and `239.255.0.0`); discovery/IP lists can remain blank.
+- Network and multicast IP input rows now highlight yellow when changed, and red when invalid after a save attempt (label and input box).
+- Existing hbox rows now drive color state directly across editable settings: yellow when changed, red on validation errors after save is attempted.
 
 ### Notes
 - `tui.cpp` compiles to object successfully after these changes.
