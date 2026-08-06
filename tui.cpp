@@ -43,7 +43,7 @@ int main() {
 
   const int minTerminalWidth = 80;
   const int minTerminalHeight = 32;
-  const string appVersion = "1.1.0";
+  const string appVersion = "1.2.0";
   const string defaultMulticastNetmask = "255.255.0.0";
   const string defaultMulticastNetprefix = "239.255.0.0";
 
@@ -153,7 +153,8 @@ int main() {
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
   string discoveryServers = ndiConfig["ndi"]["networks"]["discovery"];
   string ips = ndiConfig["ndi"]["networks"]["ips"];
-  string machineName = ndiConfig["ndi"]["machinename"];  
+  string machineName = ndiConfig["ndi"]["machinename"];
+  string multicastRecvSubnets = jsonArrayToCsv(ndiConfig["ndi"]["multicast"]["recv"]["subnets"]);
   string multicastSendNetmask = ndiConfig["ndi"]["multicast"]["send"]["netmask"];
   string multicastSendNetprefix = ndiConfig["ndi"]["multicast"]["send"]["netprefix"];
 
@@ -171,6 +172,7 @@ int main() {
   const string initialDiscoveryServers = discoveryServers;
   const string initialIps = ips;
   const string initialMachineName = machineName;
+  const string initialMulticastRecvSubnets = multicastRecvSubnets;
   const string initialMulticastSendNetmask = multicastSendNetmask;
   const string initialMulticastSendNetprefix = multicastSendNetprefix;
 
@@ -189,6 +191,7 @@ int main() {
       discoveryServers != initialDiscoveryServers ||
       ips != initialIps ||
       machineName != initialMachineName ||
+      multicastRecvSubnets != initialMulticastRecvSubnets ||
       multicastSendNetmask != initialMulticastSendNetmask ||
       multicastSendNetprefix != initialMulticastSendNetprefix;
   };
@@ -200,6 +203,10 @@ int main() {
     }
     if (!validateCsvIPv4(ips)) {
       errorMessage = "IPs list must contain valid IPv4 values";
+      return false;
+    }
+    if (!validateCsvCidr(multicastRecvSubnets)) {
+      errorMessage = "Multicast recv subnets must be valid CIDR values";
       return false;
     }
 
@@ -247,11 +254,15 @@ int main() {
     discoveryServers = backupConfig["ndi"]["networks"]["discovery"];
     ips = backupConfig["ndi"]["networks"]["ips"];
     machineName = backupConfig["ndi"]["machinename"];
+    multicastRecvSubnets = jsonArrayToCsv(backupConfig["ndi"]["multicast"]["recv"]["subnets"]);
     multicastSendNetmask = backupConfig["ndi"]["multicast"]["send"]["netmask"];
     multicastSendNetprefix = backupConfig["ndi"]["multicast"]["send"]["netprefix"];
 
     restoreStatusIsError = false;
     restoreStatusMessage = "Loaded backup into form";
+    validationAttempted = false;
+    validationStatusIsError = false;
+    validationStatusMessage = "Ready";
   };
 
   restoreBackupButton = Button("Restore Previous Config", [&] {
@@ -324,6 +335,7 @@ int main() {
   Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
   Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
   Component multicastSendTTLToggle = Toggle(&ttlEntries, &multicastSendTTL);
+  Component multicastRecvSubnetsInput = Input(&multicastRecvSubnets, "10.28.5.0/24, 10.28.4.0/24");
   
   Component sendGroupInput = Input(&sendGroups, "Public, Group1, Group2");
   Component recvGroupInput = Input(&recvGroups, "Public, Group1, Group2");
@@ -370,6 +382,7 @@ int main() {
     recvGroupInput,
     modesRowContainer,
     multicastContainer,
+    multicastRecvSubnetsInput,
     saveAndExitButton,
     discardAndExitButton,
     restoreBackupButton
@@ -420,12 +433,14 @@ int main() {
     const bool changedUnicastRecv = unicastRecvSelected != initialUnicastRecvSelected;
     const bool changedMulticastSend = multicastSendSelected != initialMulticastSendSelected;
     const bool changedMulticastRecv = multicastRecvSelected != initialMulticastRecvSelected;
+    const bool changedMulticastRecvSubnets = multicastRecvSubnets != initialMulticastRecvSubnets;
     const bool changedMulticastTtl = multicastSendTTL != initialMulticastSendTTL;
     const bool changedNetmask = multicastSendNetmask != initialMulticastSendNetmask;
     const bool changedNetprefix = multicastSendNetprefix != initialMulticastSendNetprefix;
 
     const bool invalidDiscovery = validationAttempted && !validateCsvIPv4(discoveryServers);
     const bool invalidIps = validationAttempted && !validateCsvIPv4(ips);
+    const bool invalidMulticastRecvSubnets = validationAttempted && !validateCsvCidr(multicastRecvSubnets);
     const bool invalidNetmask =
       validationAttempted && !netmaskForValidation.empty() && !isValidNetmask(netmaskForValidation);
     const bool invalidNetprefix =
@@ -541,7 +556,7 @@ int main() {
 
       border(
         vbox(
-          text("    Multicast IP Settings    ") | bold | center,
+          text("    Multicast Send Settings    ") | bold | center,
           separator(),
           hbox(
             vbox( 
@@ -577,6 +592,22 @@ int main() {
           ) | center
 
         ) | center,
+
+      border(
+        vbox(
+          text("Multicast Recv Subnets") | bold | center,
+          separator(),
+          colorizeRow(
+            hbox(
+              text(" Subnets "),
+              separator(),
+              multicastRecvSubnetsInput->Render() | size(WIDTH, EQUAL, 38)
+            ) | center,
+            changedMulticastRecvSubnets,
+            invalidMulticastRecvSubnets
+          )
+        )
+      ) | center,
 
       border(
         hbox(
@@ -664,6 +695,7 @@ int main() {
     trim(multicastSendNetmask).empty() ? defaultMulticastNetmask : trim(multicastSendNetmask);
   const string multicastNetprefixForSave =
     trim(multicastSendNetprefix).empty() ? defaultMulticastNetprefix : trim(multicastSendNetprefix);
+  const std::vector<std::string> multicastRecvSubnetsForSave = splitCsv(multicastRecvSubnets);
 
   multicastSendSet(
     multicastSendSelected,
@@ -672,7 +704,7 @@ int main() {
     multicastSendTTL,
     ndiConfig
   );
-  multicastRecvSet(multicastRecvSelected, ndiConfig);
+  multicastRecvSet(multicastRecvSelected, multicastRecvSubnetsForSave, ndiConfig);
 
   string saveError;
   if (!saveConfigAtomicallyWithBackup(configPath, backupConfigPath, ndiConfig, saveError)) {

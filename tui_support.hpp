@@ -174,6 +174,36 @@ inline std::vector<std::string> splitCsv(const std::string& value) {
   return tokens;
 }
 
+inline std::string joinCsv(const std::vector<std::string>& values) {
+  std::string result;
+  for (std::size_t index = 0; index < values.size(); ++index) {
+    if (index > 0) {
+      result += ", ";
+    }
+    result += values[index];
+  }
+  return result;
+}
+
+inline std::string jsonArrayToCsv(const nlohmann::json& value) {
+  if (value.is_string()) {
+    return value.get<std::string>();
+  }
+
+  if (!value.is_array()) {
+    return "";
+  }
+
+  std::vector<std::string> values;
+  values.reserve(value.size());
+  for (const auto& item : value) {
+    if (item.is_string()) {
+      values.push_back(item.get<std::string>());
+    }
+  }
+  return joinCsv(values);
+}
+
 inline bool isValidIPv4(const std::string& value) {
   std::stringstream ss(value);
   std::string part;
@@ -232,6 +262,41 @@ inline bool isValidMulticastPrefix(const std::string& value) {
   std::getline(ss, first, '.');
   int firstOctet = std::stoi(first);
   return firstOctet >= 224 && firstOctet <= 239;
+}
+
+inline bool isValidCidr(const std::string& value) {
+  const std::size_t slashPos = value.find('/');
+  if (slashPos == std::string::npos || slashPos == 0 || slashPos + 1 >= value.size()) {
+    return false;
+  }
+
+  const std::string address = value.substr(0, slashPos);
+  const std::string prefixLength = value.substr(slashPos + 1);
+  if (!isValidIPv4(address)) {
+    return false;
+  }
+
+  if (prefixLength.empty() || prefixLength.size() > 2) {
+    return false;
+  }
+
+  for (char c : prefixLength) {
+    if (!std::isdigit(static_cast<unsigned char>(c))) {
+      return false;
+    }
+  }
+
+  const int prefix = std::stoi(prefixLength);
+  return prefix >= 0 && prefix <= 32;
+}
+
+inline bool validateCsvCidr(const std::string& value) {
+  for (const std::string& token : splitCsv(value)) {
+    if (!isValidCidr(token)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 inline bool validateCsvIPv4(const std::string& value) {

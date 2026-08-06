@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <string>
+#include <vector>
 #include "json.hpp"
 
 inline std::string getHomeDir() {
@@ -14,7 +15,7 @@ inline std::string getHomeDir() {
 
 inline void multicastGenConfig(nlohmann::json& ndiConfig) {
 	ndiConfig["ndi"]["multicast"] = {
-		{"recv", {{"enable", false}}},
+		{"recv", {{"enable", true}, {"subnets", nlohmann::json::array()}}},
 		{"send", {
 			{"enable", false},
 			{"netmask", "255.255.0.0"},
@@ -95,10 +96,22 @@ inline void multicastRecvSet(bool recv, nlohmann::json& ndiConfig) {
 	}
 
 	if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
-		ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}};
+		ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", true}, {"subnets", nlohmann::json::array()}};
+	}
+
+	if (!ndiConfig["ndi"]["multicast"]["recv"].contains("subnets")) {
+		ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = nlohmann::json::array();
 	}
 
 	ndiConfig["ndi"]["multicast"]["recv"]["enable"] = recv;
+}
+
+inline void multicastRecvSet(bool recv, const std::vector<std::string>& subnets, nlohmann::json& ndiConfig) {
+	multicastRecvSet(recv, ndiConfig);
+	ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = nlohmann::json::array();
+	for (const std::string& subnet : subnets) {
+		ndiConfig["ndi"]["multicast"]["recv"]["subnets"].push_back(subnet);
+	}
 }
 
 inline void multicastSendSet(bool send, std::string netmask, std::string netprefix, int ttl, nlohmann::json& ndiConfig) {
@@ -196,7 +209,11 @@ inline void generateMissingConfig(nlohmann::json& ndiConfig) {
 	}
 
 	if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
-		ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", false}};
+		ndiConfig["ndi"]["multicast"]["recv"] = {{"enable", true}, {"subnets", nlohmann::json::array()}};
+	}
+
+	if (!ndiConfig["ndi"]["multicast"]["recv"].contains("subnets")) {
+		ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = nlohmann::json::array();
 	}
 
 	if (!ndiConfig["ndi"].contains("unicast")) {

@@ -25,6 +25,7 @@ The app provides a text-based interface (TUI) to modify:
 - RUDP send/recv enable flags
 - Unicast send/recv enable flags
 - Multicast recv enable flag
+- Multicast recv subnets (CIDR list)
 - Multicast send settings:
 	- enable
 	- netmask

@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-06
+
+### Added
+- Multicast recv subnets support in the TUI as a CIDR list stored at `ndi.multicast.recv.subnets`.
+- A dedicated selectable panel for multicast recv subnets in the bottom status area.
+
+### Changed
+- Multicast recv config generation now carries a `subnets` array so partial configs load and save cleanly.
+- Multicast recv subnets are validated, round-tripped through backup restore, and saved as JSON arrays.
+- The multicast recv subnets panel now uses a fixed width so the input does not jump around while typing.
+
 ## 2026-07-23
 
 ### Added
