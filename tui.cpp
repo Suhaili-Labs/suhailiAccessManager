@@ -43,7 +43,7 @@ int main() {
 
   const int minTerminalWidth = 80;
   const int minTerminalHeight = 32;
-  const string appVersion = "1.2.0";
+  const string appVersion = "1.2.1";
   const string defaultMulticastNetmask = "255.255.0.0";
   const string defaultMulticastNetprefix = "239.255.0.0";
 
