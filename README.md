@@ -105,7 +105,13 @@ nix run github:Suhaili-Labs/suhailiAccessManager
 
 ### NixOS system integration
 
-To install `accessman` system-wide, add it as an input in your system flake (`/etc/nixos/flake.nix`):
+You can run `accessman` without installing it:
+
+```bash
+nix run github:Suhaili-Labs/suhailiAccessManager
+```
+
+To install it system-wide, add it as an input in your system flake (`/etc/nixos/flake.nix`):
 
 ```nix
 inputs.accessman.url = "github:Suhaili-Labs/suhailiAccessManager/v1.2.1";
