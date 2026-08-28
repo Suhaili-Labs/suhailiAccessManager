@@ -56,6 +56,8 @@ Tested on Ubuntu 24.04 and Arch Linux.
 
 `json.hpp` (nlohmann/json single-header) is already included in this repository.
 
+Alternatively, Nix/NixOS users can use the included `flake.nix` — see [Nix build](#nix-build) below.
+
 ## Build
 
 The project includes a Makefile at `build/makefile`.
@@ -83,6 +85,45 @@ Clean build artifacts:
 cd build
 make -f makefile clean
 ```
+
+## Nix build
+
+The repo includes a `flake.nix` that builds `accessman` using FTXUI from nixpkgs (no git-clone-to-cache step). The vendored `json.hpp` is used as-is.
+
+Build and run locally:
+
+```bash
+nix build
+nix run
+```
+
+Or run without cloning:
+
+```bash
+nix run github:Suhaili-Labs/suhailiAccessManager
+```
+
+Enter a dev shell with the toolchain available (gcc, cmake, git, gnumake, FTXUI):
+
+```bash
+nix develop
+```
+
+### NixOS system integration
+
+To install `accessman` system-wide via your NixOS configuration, add it as a sub-flake under `packages/` in your system flake:
+
+```nix
+# /etc/nixos/flake.nix
+inputs.accessman.url = "path:./packages/accessman";
+
+# Then in nixosConfiguration modules:
+environment.systemPackages = [
+  accessman.packages.x86_64-linux.default
+];
+```
+
+...with a `packages/accessman/` directory containing the `flake.nix` and `source/` checkout from this repo. See `flake.nix` in this repo for the package definition.
 
 ## Installation
 
