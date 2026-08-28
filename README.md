@@ -103,12 +103,6 @@ Or run without cloning:
 nix run github:Suhaili-Labs/suhailiAccessManager
 ```
 
-Enter a dev shell with the toolchain available (gcc, cmake, git, gnumake, FTXUI):
-
-```bash
-nix develop
-```
-
 ### NixOS system integration
 
 To install `accessman` system-wide, add it as an input in your system flake (`/etc/nixos/flake.nix`):
