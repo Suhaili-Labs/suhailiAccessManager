@@ -120,9 +120,13 @@ inputs.accessman.url = "github:Suhaili-Labs/suhailiAccessManager/v1.2.1";
 Then add the package to your system configuration:
 
 ```nix
-environment.systemPackages = [
-  inputs.accessman.packages.x86_64-linux.default
-];
+{ config, pkgs, inputs, ... }:
+
+{
+  environment.systemPackages = [
+    inputs.accessman.packages.x86_64-linux.default
+  ];
+}
 ```
 
 Rebuild:
@@ -152,6 +156,20 @@ inputs.accessman.url = "path:./packages/accessman";
 ```
 
 ...with a `packages/accessman/` directory containing the `flake.nix` and source from this repo. Update by copying new source into that directory and rebuilding.
+
+#### Multiple inputs
+
+Your system flake can have multiple inputs alongside `accessman`:
+
+```nix
+inputs = {
+  nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  accessman.url = "github:Suhaili-Labs/suhailiAccessManager/v1.2.1";
+  another-tool.url = "github:owner/repo/v2.0";
+};
+```
+
+Each input is independently pinned in `flake.lock` and can be added to `environment.systemPackages` as needed.
 
 ## Installation
 
