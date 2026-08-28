@@ -86,11 +86,11 @@ cd build
 make -f makefile clean
 ```
 
-## Nix build
+## Nix / NixOS
 
 The repo includes a `flake.nix` that builds `accessman` using FTXUI from nixpkgs (no git-clone-to-cache step). The vendored `json.hpp` is used as-is.
 
-Build and run locally:
+### Build and run locally
 
 ```bash
 nix build
@@ -111,19 +111,47 @@ nix develop
 
 ### NixOS system integration
 
-To install `accessman` system-wide via your NixOS configuration, add it as a sub-flake under `packages/` in your system flake:
+To install `accessman` system-wide, add it as an input in your system flake (`/etc/nixos/flake.nix`):
 
 ```nix
-# /etc/nixos/flake.nix
-inputs.accessman.url = "path:./packages/accessman";
+inputs.accessman.url = "github:Suhaili-Labs/suhailiAccessManager/v1.2.1";
+```
 
-# Then in nixosConfiguration modules:
+Then add the package to your system configuration:
+
+```nix
 environment.systemPackages = [
-  accessman.packages.x86_64-linux.default
+  inputs.accessman.packages.x86_64-linux.default
 ];
 ```
 
-...with a `packages/accessman/` directory containing the `flake.nix` and `source/` checkout from this repo. See `flake.nix` in this repo for the package definition.
+Rebuild:
+
+```bash
+sudo nixos-rebuild switch --flake /etc/nixos#your-hostname
+```
+
+#### Updating to a new release
+
+Edit `/etc/nixos/flake.nix` to point at the new tag (e.g. `v1.2.2`), then refresh the lock and rebuild:
+
+```bash
+cd /etc/nixos
+sudo nix flake lock --update-input accessman
+sudo nixos-rebuild switch --flake /etc/nixos#your-hostname
+```
+
+The lock file pins the exact commit hash, so the update is explicit and reproducible.
+
+#### Alternative: local source
+
+If you want to build from a local checkout instead of a GitHub tag, use a `path:` input:
+
+```nix
+inputs.accessman.url = "path:./packages/accessman";
+```
+
+...with a `packages/accessman/` directory containing the `flake.nix` and source from this repo. Update by copying new source into that directory and rebuilding.
 
 ## Installation
 
