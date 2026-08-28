@@ -117,19 +117,7 @@ To install it system-wide, add it as an input in your system flake (`/etc/nixos/
 inputs.accessman.url = "github:Suhaili-Labs/suhailiAccessManager/v1.2.1";
 ```
 
-Then add the package to your system configuration:
-
-```nix
-{ config, pkgs, inputs, ... }:
-
-{
-  environment.systemPackages = [
-    inputs.accessman.packages.x86_64-linux.default
-  ];
-}
-```
-
-Rebuild:
+Then rebuild:
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos#your-hostname
