@@ -552,33 +552,34 @@ int main() {
         border(vbox(
           text("Multi-TCP") | bold | center,
           separator(),
-          colorizeRow(hbox(text(" Send ") ,separator(),tcpSendToggle->Render()), changedTcpSend, false),
-          colorizeRow(hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render()), changedTcpRecv, false)
+          colorizeRow(hbox(text(" Send ") ,separator(),tcpSendToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedTcpSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedTcpRecv, false)
         ) | center | size(WIDTH, GREATER_THAN, 16)),
         border(vbox(
           text("RUDP") | bold | center,
           separator(),
-          colorizeRow(hbox(text(" Send ") ,separator(),rudpSendToggle->Render()), changedRudpSend, false),
-          colorizeRow(hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render()), changedRudpRecv, false)
+          colorizeRow(hbox(text(" Send ") ,separator(),rudpSendToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedRudpSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedRudpRecv, false)
         ) | center | size(WIDTH, GREATER_THAN, 16)),
         border(vbox(
           text("Unicast") | bold | center,
           separator(),
-          colorizeRow(hbox(text(" Send ") ,separator(),unicastSendToggle->Render()), changedUnicastSend, false),
-          colorizeRow(hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render()), changedUnicastRecv, false)
+          colorizeRow(hbox(text(" Send ") ,separator(),unicastSendToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedUnicastSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedUnicastRecv, false)
         ) | center | size(WIDTH, GREATER_THAN, 16)),
         border(vbox(
           text(" Mcast ") | bold | center,
           separator(),
-          colorizeRow(hbox(text(" Send ") ,separator(),multicastSendToggle->Render()), changedMulticastSend, false),
-          colorizeRow(hbox(text(" Recv ") ,separator(),multicastRecvToggle->Render()), changedMulticastRecv, false)
+          colorizeRow(hbox(text(" Send ") ,separator(),multicastSendToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedMulticastSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),multicastRecvToggle->Render()) | size(WIDTH, GREATER_THAN, 14), changedMulticastRecv, false)
         ) | center | size(WIDTH, GREATER_THAN, 16))
       ) | center,
 
       hbox(
         border(
           vbox(
-            text("    Multicast Send Settings    ") | bold | center,
+            text("Multicast Send") | bold | center,
+            text("Settings") | bold | center,
             separator(),
             hbox(
               vbox(
@@ -598,7 +599,8 @@ int main() {
         ),
         border(
           vbox(
-            text("     Multicast TTL     ") | bold | center,
+            text("  Multicast  ") | bold | center,
+            text("   TTL    ") | bold | center,
             separator(),
             hbox(
               vbox(
