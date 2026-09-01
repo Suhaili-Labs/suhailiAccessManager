@@ -614,6 +614,7 @@ int main() {
         ),
         border(
           vbox(
+            text("   Multicast    ") | bold | center,
             text(" Recv Subnets ") | bold | center,
             separator(),
             colorizeRow(
