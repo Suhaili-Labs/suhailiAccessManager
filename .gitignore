@@ -3,3 +3,4 @@ a.out
 build/obj/
 accessman
 third_party/
+tests/bin/
