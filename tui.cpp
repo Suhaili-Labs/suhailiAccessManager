@@ -315,14 +315,14 @@ int main() {
     ) | color(Color::White) | bgcolor(Color::RGB(95, 12, 12)) | center;
   });
   
-  Component tcpSendToggle = Checkbox(" Enable", &tcpSendSelected);
-  Component tcpRecvToggle = Checkbox(" Enable", &tcpRecvSelected);
-  Component rudpSendToggle = Checkbox(" Enable", &rudpSendSelected);
-  Component rudpRecvToggle = Checkbox(" Enable", &rudpRecvSelected);
-  Component unicastSendToggle = Checkbox(" Enable", &unicastSendSelected);
-  Component unicastRecvToggle = Checkbox(" Enable", &unicastRecvSelected);
-  Component multicastSendToggle = Checkbox(" Enable", &multicastSendSelected);
-  Component multicastRecvToggle = Checkbox(" Enable", &multicastRecvSelected);
+  Component tcpSendToggle = Checkbox("  Enable", &tcpSendSelected);
+  Component tcpRecvToggle = Checkbox("  Enable", &tcpRecvSelected);
+  Component rudpSendToggle = Checkbox("  Enable", &rudpSendSelected);
+  Component rudpRecvToggle = Checkbox("  Enable", &rudpRecvSelected);
+  Component unicastSendToggle = Checkbox("  Enable", &unicastSendSelected);
+  Component unicastRecvToggle = Checkbox("  Enable", &unicastRecvSelected);
+  Component multicastSendToggle = Checkbox("  Enable", &multicastSendSelected);
+  Component multicastRecvToggle = Checkbox("  Enable", &multicastRecvSelected);
   Component multicastSendTTLInput = Input(&multicastSendTTL, "1");
   Component multicastRecvSubnetsInput = Input(&multicastRecvSubnets, "10.28.5.0/24, 10.28.4.0/24");
   
