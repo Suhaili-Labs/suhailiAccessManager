@@ -360,18 +360,32 @@ int main() {
     unicastRecvToggle
   });
 
-  Component modesRowContainer = Container::Vertical({
+  // Horizontal so Left/Right move focus between protocols natively.
+  Component modesRowContainer = Container::Horizontal({
     tcpContainer,
     rudpContainer,
     unicastContainer
   });
 
-  Component multicastContainer = Container::Vertical({
+  Component multicastEnablesBox = Container::Vertical({
     multicastSendToggle,
-    multicastRecvToggle,
+    multicastRecvToggle
+  });
+
+  Component multicastSettingsBox = Container::Vertical({
     multicastSendNetmaskInput,
-    multicastSendNetprefixInput,
+    multicastSendNetprefixInput
+  });
+
+  Component multicastTtlBox = Container::Vertical({
     multicastSendTTLToggle
+  });
+
+  // Horizontal group so Left/Right work inside the multicast row too.
+  Component multicastContainer = Container::Horizontal({
+    multicastEnablesBox,
+    multicastSettingsBox,
+    multicastTtlBox
   });
 
   Component mainContainer = Container::Vertical({ 
@@ -637,7 +651,7 @@ int main() {
 
       text(""),
       
-      text("Navigation: Up/Down/Left/Right move focus | Tab toggles control") | dim | center,
+      text("Navigation: Up/Down move between rows | Left/Right move between groups & in text fields") | dim | center,
 
       text(""),
 
@@ -649,30 +663,6 @@ int main() {
 
   auto app = Modal(renderer, discardConfirmDialog, &showDiscardConfirm);
   app = Modal(app, restoreConfirmDialog, &showRestoreConfirm);
-
-  app = CatchEvent(app, [&](Event event) {
-    if (event == Event::ArrowLeft) {
-      if (showDiscardConfirm) {
-        return discardConfirmContainer->OnEvent(Event::ArrowUp);
-      }
-      if (showRestoreConfirm) {
-        return restoreConfirmContainer->OnEvent(Event::ArrowUp);
-      }
-      return mainContainer->OnEvent(Event::ArrowUp);
-    }
-
-    if (event == Event::ArrowRight) {
-      if (showDiscardConfirm) {
-        return discardConfirmContainer->OnEvent(Event::ArrowDown);
-      }
-      if (showRestoreConfirm) {
-        return restoreConfirmContainer->OnEvent(Event::ArrowDown);
-      }
-      return mainContainer->OnEvent(Event::ArrowDown);
-    }
-
-    return false;
-  });
 
   screen.Loop(app);
   
