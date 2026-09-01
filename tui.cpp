@@ -383,10 +383,10 @@ int main() {
     multicastSendTTLToggle
   });
 
-  // Visual bands: Up/Down moves across the rows in each band, Left/Right
-  // inside the band's horizontal row. Mirrors the on-screen layout so focus
-  // never skips fields.
-  Component machineNameRow = Container::Horizontal({ machineNameInput });
+  // Each band is Vertical-of-one-horizontal-child. Up/Down bubbles through
+  // the nearest Vertical wrapper (Vertical consumes the event only when it
+  // changes focus), so focus walks row-by-row without skipping boxes.
+  Component machineNameRow = Container::Vertical({ machineNameInput });
 
   Component networkInputsBox = Container::Vertical({
     discoveryServersInput,
@@ -398,24 +398,28 @@ int main() {
     recvGroupInput
   });
 
-  Component networkGroupsRow = Container::Horizontal({
+  Component networkGroupsRowInner = Container::Horizontal({
     networkInputsBox,
     groupsInputsBox
   });
 
+  Component networkGroupsRow = Container::Vertical({ networkGroupsRowInner });
+
   // (tcp/rudp/unicast/mode containers above remain individually vertical.)
 
-  Component multicastRow = Container::Horizontal({
+  Component multicastRowInner = Container::Horizontal({
     multicastEnablesBox,
     multicastSettingsBox,
     multicastTtlBox
   });
+  Component multicastRow = Container::Vertical({ multicastRowInner });
 
-  Component bottomButtonsRow = Container::Horizontal({
+  Component bottomButtonsRowInner = Container::Horizontal({
     saveAndExitButton,
     discardAndExitButton,
     restoreBackupButton
   });
+  Component bottomButtonsRow = Container::Vertical({ bottomButtonsRowInner });
 
   Component mainContainer = Container::Vertical({
     machineNameRow,
