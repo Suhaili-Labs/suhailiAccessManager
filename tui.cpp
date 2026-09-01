@@ -524,6 +524,7 @@ int main() {
       ) | center,
 
       hbox(
+        filler(),
         border(vbox(
           text("                   Network                  ") | bold | center,
           separator(),
@@ -539,16 +540,18 @@ int main() {
           )
           ) | center
         ),
-      border(vbox(
+        border(vbox(
           text("                    Groups                   ") | bold | center,
           separator(),
           colorizeRow(hbox(text(" Send "), separator(), sendGroupInput->Render()), changedSendGroups, false),
           colorizeRow(hbox(text(" Recv "), separator(), recvGroupInput->Render()), changedRecvGroups, false)
           ) | center
-        )
-      ) | center | size(WIDTH, EQUAL, 90),
+        ),
+        filler()
+      ) | size(WIDTH, EQUAL, 90) | center,
 
       hbox(
+        filler(),
         border(vbox(
           text("Multi-TCP") | bold | center,
           separator(),
@@ -572,10 +575,12 @@ int main() {
           separator(),
           colorizeRow(hbox(text(" Send ") ,separator(),multicastSendToggle->Render()) | size(WIDTH, GREATER_THAN, 18), changedMulticastSend, false),
           colorizeRow(hbox(text(" Recv ") ,separator(),multicastRecvToggle->Render()) | size(WIDTH, GREATER_THAN, 18), changedMulticastRecv, false)
-        ) | center | size(WIDTH, GREATER_THAN, 21))
-      ) | center | size(WIDTH, EQUAL, 90),
+        ) | center | size(WIDTH, GREATER_THAN, 21)),
+        filler()
+      ) | size(WIDTH, EQUAL, 90) | center,
 
       hbox(
+        filler(),
         border(
           vbox(
             text("    Multicast Send Settings    ") | bold | center,
@@ -628,7 +633,7 @@ int main() {
             )
           )
         ) | center
-      ) | center | size(WIDTH, EQUAL, 90),
+      ) | center,
 
       border(
         hbox(
