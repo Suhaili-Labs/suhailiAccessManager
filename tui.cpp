@@ -632,8 +632,9 @@ int main() {
               invalidMulticastRecvSubnets
             )
           )
-        ) | center
-      ) | center,
+        ) | center,
+        filler()
+      ) | size(WIDTH, EQUAL, 90) | center,
 
       border(
         hbox(
