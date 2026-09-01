@@ -578,8 +578,7 @@ int main() {
       hbox(
         border(
           vbox(
-            text("Multicast Send") | bold | center,
-            text("Settings") | bold | center,
+            text("    Multicast Send Settings    ") | bold | center,
             separator(),
             hbox(
               vbox(
