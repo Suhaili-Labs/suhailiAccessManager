@@ -13,6 +13,26 @@ inline std::string getHomeDir() {
 	return home ? std::string(home) : std::string("");
 }
 
+// Type coercion helpers: enforce the NDI SDK field types so hand-edited
+// configs with wrong leaf types normalize to defaults instead of crashing
+// (docs note: "true" string vs true boolean etc.). Numeric 0/1 bools coerce.
+inline void ensureBool(nlohmann::json& value, bool fallback) {
+	if (value.is_boolean()) return;
+	if (value.is_number()) {
+		value = (value.get<int>() != 0);
+		return;
+	}
+	value = fallback;
+}
+
+inline void ensureString(nlohmann::json& value, const std::string& fallback) {
+	if (!value.is_string()) value = fallback;
+}
+
+inline void ensureNumber(nlohmann::json& value, int fallback) {
+	if (!value.is_number()) value = fallback;
+}
+
 inline void multicastGenConfig(nlohmann::json& ndiConfig) {
 	ndiConfig["ndi"]["multicast"] = {
 		{"recv", {{"enable", true}, {"subnets", nlohmann::json::array()}}},
@@ -259,6 +279,30 @@ inline void generateMissingConfig(nlohmann::json& ndiConfig) {
 
 	if (!ndiConfig["ndi"]["tcp"].contains("recv")) {
 		ndiConfig["ndi"]["tcp"]["recv"] = {{"enable", false}};
+	}
+
+	// Leaf-type sanitization: hand-edited configs with wrong types get their
+	// fields reset to defaults instead of crashing reads in the UI.
+	ensureBool(ndiConfig["ndi"]["tcp"]["send"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["tcp"]["recv"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["rudp"]["send"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["rudp"]["recv"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["unicast"]["send"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["unicast"]["recv"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["multicast"]["send"]["enable"], false);
+	ensureBool(ndiConfig["ndi"]["multicast"]["recv"]["enable"], true);
+	ensureNumber(ndiConfig["ndi"]["multicast"]["send"]["ttl"], 1);
+	ensureString(ndiConfig["ndi"]["multicast"]["send"]["netmask"], "");
+	ensureString(ndiConfig["ndi"]["multicast"]["send"]["netprefix"], "");
+	ensureString(ndiConfig["ndi"]["machinename"], "");
+	ensureString(ndiConfig["ndi"]["networks"]["discovery"], "");
+	ensureString(ndiConfig["ndi"]["networks"]["ips"], "");
+	ensureString(ndiConfig["ndi"]["groups"]["send"], "Public,");
+	ensureString(ndiConfig["ndi"]["groups"]["recv"], "Public,");
+
+	// subnets must be an array; non-string entries are dropped before use.
+	if (!ndiConfig["ndi"]["multicast"]["recv"]["subnets"].is_array()) {
+		ndiConfig["ndi"]["multicast"]["recv"]["subnets"] = nlohmann::json::array();
 	}
 }
 
