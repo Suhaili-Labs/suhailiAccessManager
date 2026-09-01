@@ -546,8 +546,8 @@ int main() {
           colorizeRow(hbox(text(" Recv "), separator(), recvGroupInput->Render()), changedRecvGroups, false)
           ) | center
         )
-      ) | center,
-      
+      ) | center | size(WIDTH, EQUAL, 90),
+
       hbox(
         border(vbox(
           text("Multi-TCP") | bold | center,
@@ -573,7 +573,7 @@ int main() {
           colorizeRow(hbox(text(" Send ") ,separator(),multicastSendToggle->Render()) | size(WIDTH, GREATER_THAN, 18), changedMulticastSend, false),
           colorizeRow(hbox(text(" Recv ") ,separator(),multicastRecvToggle->Render()) | size(WIDTH, GREATER_THAN, 18), changedMulticastRecv, false)
         ) | center | size(WIDTH, GREATER_THAN, 21))
-      ) | center,
+      ) | center | size(WIDTH, EQUAL, 90),
 
       hbox(
         border(
@@ -628,7 +628,7 @@ int main() {
             )
           )
         ) | center
-      ) | center,
+      ) | center | size(WIDTH, EQUAL, 90),
 
       border(
         hbox(
