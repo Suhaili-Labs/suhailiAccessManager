@@ -119,37 +119,19 @@ int main() {
     closeScreen();
   });
   Component restoreBackupButton;
-  
-  vector<string> toggleEntries = {
-    "  Disable  ",
-    "  Enable  "
-  };
 
-  vector<string> ttlEntries = {" 0 ", " 1 ", " 2 ", " 3 ", " 4 ", " 5 "};
-
-  int tcpSendSelected = ndiConfig["ndi"]["tcp"]["send"]["enable"];
-  int tcpRecvSelected = ndiConfig["ndi"]["tcp"]["recv"]["enable"];
-  int rudpSendSelected = ndiConfig["ndi"]["rudp"]["send"]["enable"];
-  int rudpRecvSelected = ndiConfig["ndi"]["rudp"]["recv"]["enable"];
-  int unicastSendSelected = ndiConfig["ndi"]["unicast"]["send"]["enable"];
-  int unicastRecvSelected = ndiConfig["ndi"]["unicast"]["recv"]["enable"];
-  int multicastSendSelected = ndiConfig["ndi"]["multicast"]["send"]["enable"];
-  int multicastRecvSelected = ndiConfig["ndi"]["multicast"]["recv"]["enable"]; 
-  int multicastSendTTL = ndiConfig["ndi"]["multicast"]["send"]["ttl"];
-
-  auto normalizeToggleSelection = [](int value) {
-    return value == 0 ? 0 : 1;
-  };
-
-  tcpSendSelected = normalizeToggleSelection(tcpSendSelected);
-  tcpRecvSelected = normalizeToggleSelection(tcpRecvSelected);
-  rudpSendSelected = normalizeToggleSelection(rudpSendSelected);
-  rudpRecvSelected = normalizeToggleSelection(rudpRecvSelected);
-  unicastSendSelected = normalizeToggleSelection(unicastSendSelected);
-  unicastRecvSelected = normalizeToggleSelection(unicastRecvSelected);
-  multicastSendSelected = normalizeToggleSelection(multicastSendSelected);
-  multicastRecvSelected = normalizeToggleSelection(multicastRecvSelected);
-  multicastSendTTL = std::clamp(multicastSendTTL, 0, static_cast<int>(ttlEntries.size()) - 1);
+  // Checkboxes (Enter/Space flip, arrows navigate) instead of Toggles
+  // (Left/Right flipped the value). TTL is a validating text Input for the
+  // same reason.
+  bool tcpSendSelected = ndiConfig["ndi"]["tcp"]["send"]["enable"];
+  bool tcpRecvSelected = ndiConfig["ndi"]["tcp"]["recv"]["enable"];
+  bool rudpSendSelected = ndiConfig["ndi"]["rudp"]["send"]["enable"];
+  bool rudpRecvSelected = ndiConfig["ndi"]["rudp"]["recv"]["enable"];
+  bool unicastSendSelected = ndiConfig["ndi"]["unicast"]["send"]["enable"];
+  bool unicastRecvSelected = ndiConfig["ndi"]["unicast"]["recv"]["enable"];
+  bool multicastSendSelected = ndiConfig["ndi"]["multicast"]["send"]["enable"];
+  bool multicastRecvSelected = ndiConfig["ndi"]["multicast"]["recv"]["enable"];
+  string multicastSendTTL = std::to_string(static_cast<int>(ndiConfig["ndi"]["multicast"]["send"]["ttl"]));
 
   string sendGroups = ndiConfig["ndi"]["groups"]["send"];
   string recvGroups = ndiConfig["ndi"]["groups"]["recv"];
@@ -168,7 +150,7 @@ int main() {
   const int initialUnicastRecvSelected = unicastRecvSelected;
   const int initialMulticastSendSelected = multicastSendSelected;
   const int initialMulticastRecvSelected = multicastRecvSelected;
-  const int initialMulticastSendTTL = multicastSendTTL;
+  const string initialMulticastSendTTL = multicastSendTTL;
   const string initialSendGroups = sendGroups;
   const string initialRecvGroups = recvGroups;
   const string initialDiscoveryServers = discoveryServers;
@@ -212,6 +194,15 @@ int main() {
       return false;
     }
 
+    const string ttlTrimmed = trim(multicastSendTTL);
+    const bool ttlNumeric = !ttlTrimmed.empty() &&
+      std::all_of(ttlTrimmed.begin(), ttlTrimmed.end(),
+                  [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
+    if (!ttlNumeric || std::stoi(ttlTrimmed) > 255) {
+      errorMessage = "Multicast TTL must be a number 0-255";
+      return false;
+    }
+
     const string netmaskForValidation = trim(multicastSendNetmask);
     const string netprefixForValidation = trim(multicastSendNetprefix);
 
@@ -237,19 +228,15 @@ int main() {
       return;
     }
 
-    tcpSendSelected = normalizeToggleSelection(backupConfig["ndi"]["tcp"]["send"]["enable"]);
-    tcpRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["tcp"]["recv"]["enable"]);
-    rudpSendSelected = normalizeToggleSelection(backupConfig["ndi"]["rudp"]["send"]["enable"]);
-    rudpRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["rudp"]["recv"]["enable"]);
-    unicastSendSelected = normalizeToggleSelection(backupConfig["ndi"]["unicast"]["send"]["enable"]);
-    unicastRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["unicast"]["recv"]["enable"]);
-    multicastSendSelected = normalizeToggleSelection(backupConfig["ndi"]["multicast"]["send"]["enable"]);
-    multicastRecvSelected = normalizeToggleSelection(backupConfig["ndi"]["multicast"]["recv"]["enable"]);
-    multicastSendTTL = std::clamp(
-      static_cast<int>(backupConfig["ndi"]["multicast"]["send"]["ttl"]),
-      0,
-      static_cast<int>(ttlEntries.size()) - 1
-    );
+    tcpSendSelected = backupConfig["ndi"]["tcp"]["send"]["enable"];
+    tcpRecvSelected = backupConfig["ndi"]["tcp"]["recv"]["enable"];
+    rudpSendSelected = backupConfig["ndi"]["rudp"]["send"]["enable"];
+    rudpRecvSelected = backupConfig["ndi"]["rudp"]["recv"]["enable"];
+    unicastSendSelected = backupConfig["ndi"]["unicast"]["send"]["enable"];
+    unicastRecvSelected = backupConfig["ndi"]["unicast"]["recv"]["enable"];
+    multicastSendSelected = backupConfig["ndi"]["multicast"]["send"]["enable"];
+    multicastRecvSelected = backupConfig["ndi"]["multicast"]["recv"]["enable"];
+    multicastSendTTL = std::to_string(static_cast<int>(backupConfig["ndi"]["multicast"]["send"]["ttl"]));
 
     sendGroups = backupConfig["ndi"]["groups"]["send"];
     recvGroups = backupConfig["ndi"]["groups"]["recv"];
@@ -328,15 +315,15 @@ int main() {
     ) | color(Color::White) | bgcolor(Color::RGB(95, 12, 12)) | center;
   });
   
-  Component tcpSendToggle = Toggle(&toggleEntries, &tcpSendSelected);
-  Component tcpRecvToggle = Toggle(&toggleEntries, &tcpRecvSelected);
-  Component rudpSendToggle = Toggle(&toggleEntries, &rudpSendSelected);
-  Component rudpRecvToggle = Toggle(&toggleEntries, &rudpRecvSelected);
-  Component unicastSendToggle = Toggle(&toggleEntries, &unicastSendSelected);
-  Component unicastRecvToggle = Toggle(&toggleEntries, &unicastRecvSelected);
-  Component multicastSendToggle = Toggle(&toggleEntries, &multicastSendSelected);
-  Component multicastRecvToggle = Toggle(&toggleEntries, &multicastRecvSelected);
-  Component multicastSendTTLToggle = Toggle(&ttlEntries, &multicastSendTTL);
+  Component tcpSendToggle = Checkbox(" Enable", &tcpSendSelected);
+  Component tcpRecvToggle = Checkbox(" Enable", &tcpRecvSelected);
+  Component rudpSendToggle = Checkbox(" Enable", &rudpSendSelected);
+  Component rudpRecvToggle = Checkbox(" Enable", &rudpRecvSelected);
+  Component unicastSendToggle = Checkbox(" Enable", &unicastSendSelected);
+  Component unicastRecvToggle = Checkbox(" Enable", &unicastRecvSelected);
+  Component multicastSendToggle = Checkbox(" Enable", &multicastSendSelected);
+  Component multicastRecvToggle = Checkbox(" Enable", &multicastRecvSelected);
+  Component multicastSendTTLInput = Input(&multicastSendTTL, "1");
   Component multicastRecvSubnetsInput = Input(&multicastRecvSubnets, "10.28.5.0/24, 10.28.4.0/24");
   
   Component sendGroupInput = Input(&sendGroups, "Public, Group1, Group2");
@@ -380,7 +367,7 @@ int main() {
   });
 
   Component multicastTtlBox = Container::Vertical({
-    multicastSendTTLToggle
+    multicastSendTTLInput
   });
 
   // Each band is Vertical-of-one-horizontal-child. Up/Down bubbles through
@@ -483,6 +470,12 @@ int main() {
     const bool invalidDiscovery = validationAttempted && !validateDiscoveryCsv(discoveryServers);
     const bool invalidIps = validationAttempted && !validateCsvIPv4(ips);
     const bool invalidMulticastRecvSubnets = validationAttempted && !validateCsvCidr(multicastRecvSubnets);
+    const string ttlForValidation = trim(multicastSendTTL);
+    const bool invalidTtl = validationAttempted &&
+      (ttlForValidation.empty() ||
+       !std::all_of(ttlForValidation.begin(), ttlForValidation.end(),
+                    [](char c) { return std::isdigit(static_cast<unsigned char>(c)); }) ||
+       std::stoi(ttlForValidation) > 255);
     const bool invalidNetmask =
       validationAttempted && !netmaskForValidation.empty() && !isValidNetmask(netmaskForValidation);
     const bool invalidNetprefix =
@@ -624,9 +617,9 @@ int main() {
           hbox(
             vbox( 
                 colorizeRow(
-                  hbox(text(" TTL ") | bold | center, separator(),multicastSendTTLToggle->Render()),
+                  hbox(text(" TTL ") | bold | center, separator(),multicastSendTTLInput->Render() | size(WIDTH, EQUAL, 5)),
                   changedMulticastTtl,
-                  false
+                  invalidTtl
                 )
                 ) | center
               )
@@ -679,7 +672,7 @@ int main() {
 
       text(""),
       
-      text("Navigation: Up/Down move between rows | Left/Right move between groups & in text fields") | dim | center,
+      text("Navigation: Up/Down rows | Left/Right groups | Enter/Space toggle checkbox | type in text fields") | dim | center,
 
       text(""),
 
@@ -713,13 +706,17 @@ int main() {
     trim(multicastSendNetmask).empty() ? kDefaultMulticastNetmask : trim(multicastSendNetmask);
   const string multicastNetprefixForSave =
     trim(multicastSendNetprefix).empty() ? kDefaultMulticastNetprefix : trim(multicastSendNetprefix);
+  const string ttlTrimmed = trim(multicastSendTTL);
+  const int multicastTtlForSave = ttlTrimmed.empty()
+    ? kDefaultMulticastTtl
+    : std::stoi(ttlTrimmed);
   const std::vector<std::string> multicastRecvSubnetsForSave = splitCsv(multicastRecvSubnets);
 
   multicastSendSet(
     multicastSendSelected,
     multicastNetmaskForSave,
     multicastNetprefixForSave,
-    multicastSendTTL,
+    multicastTtlForSave,
     ndiConfig
   );
   multicastRecvSet(multicastRecvSelected, multicastRecvSubnetsForSave, ndiConfig);
