@@ -383,25 +383,47 @@ int main() {
     multicastSendTTLToggle
   });
 
-  // Horizontal group so Left/Right work inside the multicast row too.
-  Component multicastContainer = Container::Horizontal({
+  // Visual bands: Up/Down moves across the rows in each band, Left/Right
+  // inside the band's horizontal row. Mirrors the on-screen layout so focus
+  // never skips fields.
+  Component machineNameRow = Container::Horizontal({ machineNameInput });
+
+  Component networkInputsBox = Container::Vertical({
+    discoveryServersInput,
+    ipsInput
+  });
+
+  Component groupsInputsBox = Container::Vertical({
+    sendGroupInput,
+    recvGroupInput
+  });
+
+  Component networkGroupsRow = Container::Horizontal({
+    networkInputsBox,
+    groupsInputsBox
+  });
+
+  // (tcp/rudp/unicast/mode containers above remain individually vertical.)
+
+  Component multicastRow = Container::Horizontal({
     multicastEnablesBox,
     multicastSettingsBox,
     multicastTtlBox
   });
 
-  Component mainContainer = Container::Vertical({ 
-    machineNameInput,
-    discoveryServersInput,
-    ipsInput,
-    sendGroupInput,
-    recvGroupInput,
-    modesRowContainer,
-    multicastContainer,
-    multicastRecvSubnetsInput,
+  Component bottomButtonsRow = Container::Horizontal({
     saveAndExitButton,
     discardAndExitButton,
     restoreBackupButton
+  });
+
+  Component mainContainer = Container::Vertical({
+    machineNameRow,
+    networkGroupsRow,
+    modesRowContainer,
+    multicastRow,
+    multicastRecvSubnetsInput,
+    bottomButtonsRow
   });
 
   
