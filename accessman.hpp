@@ -56,10 +56,6 @@ inline void multicastGenConfig(nlohmann::json& ndiConfig) {
 	};
 }
 
-inline bool configExists(const std::string& filePath) {
-	return std::filesystem::exists(filePath);
-}
-
 inline void machineNameSet(std::string name, nlohmann::json& ndiConfig) {
 	ndiConfig["ndi"]["machinename"] = name;
 }

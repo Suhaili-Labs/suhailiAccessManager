@@ -181,7 +181,7 @@ Then run it from anywhere:
 accessman
 ```
 
-Use keyboard navigation in the TUI to adjust values, then exit using the `Exit` button. The config is written back to `~/.ndi/ndi-config.v1.json` when the program exits.
+Use keyboard navigation in the TUI to adjust values, then choose either `Save & Exit` (validates before writing and atomically updates the config) or `Discard & Exit` (leaves the config untouched; a confirmation appears when there are unsaved changes). On save, the previous config is rolled to `~/.ndi/ndi-config.v1.json.bak`.
 
 ## Project Structure
 
