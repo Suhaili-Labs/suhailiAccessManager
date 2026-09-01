@@ -14,22 +14,6 @@ design docs when needed; this list is the canonical work queue.
 
 ## Open
 
-- [ ] (TEST) **NDI schema validation harness** — `tests/schema_check.cpp`;
-      validates config against NDI SDK field-type rules (docs link in
-      [`agent/review.md`](agent/review.md)).
-- [ ] (BUG) **B1: wrong leaf types no longer crash** — sanitize types in
-      `generateMissingConfig`; [agent/review.md](agent/review.md) §B1.
-- [ ] (BUG) **B2: Left/Right blocked in Input fields** — container restructure,
-      drop top-level CatchEvent remap; review §B2.
-- [ ] (BUG) **B3: HOME fallback** — `getpwuid()` fallback; review §B3.
-- [ ] (REFACTOR) **B4: single-source defaults + version** — `version.txt` +
-      `-DAPP_VERSION`; review §B4.
-- [ ] (BUG) **B5: validator hardening** — reject leading-zero IPv4 octets and
-      `0.0.0.0` netmask; discovery entries accept optional `:port` per NDI docs;
-      review §B5.
-- [ ] (DOCS) **B6: dead code + docs cleanup** — remove `configExists`, add
-      `<cstdint>`, fix README Exit wording; review §B6.
-- [ ] (DOCS) **CHANGELOG for B1–B6** — dated entry.
 - [ ] (larger-research) **REST API prep (deferred)** — typed `NdiConfig` model,
       `core/` split, per-field validation report; review §3.2–3.3.
 - [ ] (larger-research) **TUI layout improvements (deferred)** — container
@@ -37,4 +21,28 @@ design docs when needed; this list is the canonical work queue.
 
 ## Done
 
-(empty)
+- [x] (TEST) **NDI schema validation harness** — DONE @ 0d77bf6:
+      `tests/schema_check.cpp` built run via `tests/run.sh`; field-type schema
+      checks vs [NDI SDK docs](https://docs.ndi.video/all/developing-with-ndi/sdk/configuration-files),
+      plus B5 validator regression assertions.
+- [x] (BUG) **B1: wrong leaf types no longer crash** — DONE @ 66a4a22:
+      `ensureBool/ensureString/ensureNumber` sanitize wrong-typed leaf values to
+      defaults inside `generateMissingConfig`; subnets array enforced + filtered.
+- [x] (BUG) **B2: Left/Right blocked in Input fields** — DONE @ 8892f41:
+      `modesRowContainer` → `Container::Horizontal`, multicast split into three
+      horizontal sub-containers, top-level CatchEvent remap removed, footer hint
+      updated.
+- [x] (BUG) **B3: HOME fallback** — DONE @ dd5f296: `getpwuid(getuid())->pw_dir`
+      fallback when `$HOME` is unset.
+- [x] (REFACTOR) **B4: single-source defaults + version** — DONE @ f224cd8:
+      `version.txt` read by `build/makefile` (`-DAPP_VERSION`) and `flake.nix`
+      (`builtins.readFile`); multicast defaults in `accessman.hpp`
+      (`kDefaultMulticast*`) shared by generation, fallback filling, and
+      save-time coercion.
+- [x] (BUG) **B5: validator hardening** — DONE @ feff00a: leading-zero IPv4
+      octets rejected, all-zero netmask `0.0.0.0` rejected, discovery entries
+      accept optional `:port` per NDI SDK docs; harness regression assertions.
+- [x] (DOCS) **B6: dead code + docs cleanup** — DONE @ a7b2e69: removed unused
+      `configExists()`, added explicit `<cstdint>` include, README Exit wording
+      replaced with Save/Discard semantics.
+

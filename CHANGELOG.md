@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-09-01
+
+### Added
+- New NDI schema validation harness in `tests/` (`schema_check.cpp`, run via `tests/run.sh`) asserting field/type rules from the NDI SDK configuration docs (link in [`agent/review.md`](agent/review.md)). Run before every commit touching config semantics.
+- Discovery entries now accept an optional `:port` per the NDI SDK docs (e.g. `192.168.1.1:5960`); new validator `tui_support::isValidDiscoveryEntry` + `validateDiscoveryCsv`.
+- `version.txt` at repo root is the single source for the app version; `build/makefile` injects it via `-DAPP_VERSION`, `flake.nix` reads it via `builtins.readFile`.
+
+### Fixed
+- Hand-edited configs with wrong-typed leaf values no longer crash the app: `generateMissingConfig` now sanitizes leaf types (`ensureBool/ensureString/ensureNumber`) in addition to presence checks; non-string `subnets` entries are dropped.
+- `$HOME` unset now falls back to the account's home directory via `getpwuid(getuid())->pw_dir` instead of resolving config paths relative to the current working directory.
+- Inline Left/Right now reach text `Input` fields again: `modesRowContainer` is `Container::Horizontal`, the multicast row is split into three horizontal sub-containers, and the top-level `CatchEvent` arrow remap was removed. Navigation hint updated accordingly.
+- IPv4 validators reject leading-zero octets (octal ambiguity) and all-zero netmask `0.0.0.0`.
+
+### Changed
+- Multicast defaults (`255.255.0.0` / `239.255.0.0` / ttl 1) are single-sourced in `accessman.hpp` (`kDefaultMulticastNetmask/Netprefix/Ttl`) and shared by generation, fallback filling, and save-time coercion.
+- README now describes the `Save & Exit` / `Discard & Exit` semantics (the `Exit` button no longer exists), including the rolling `.bak` behaviour.
+- Removed the unused `configExists()` helper; added an explicit `<cstdint>` include to `tui_support.hpp`.
+
 ## 2026-08-06
 
 ### Added
