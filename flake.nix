@@ -14,7 +14,7 @@
       {
         packages.default = pkgs.stdenv.mkDerivation {
           pname = "accessman";
-          version = "1.2.1";
+          version = builtins.replaceStrings ["\n"] [""] (builtins.readFile ./version.txt);
 
           src = ./.;
 

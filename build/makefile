@@ -3,8 +3,11 @@
 # Compiler
 CXX = g++
 
+# App version read from version.txt in the repo root (single source).
+APP_VERSION := $(shell cat ../version.txt | tr -d '[:space:]')
+
 # Compiler flags
-CXXFLAGS = -O2 -std=c++17
+CXXFLAGS = -O2 -std=c++17 -DAPP_VERSION=\"$(APP_VERSION)\"
 
 # Linker flags for fully static output.
 LDFLAGS = -static -static-libstdc++ -static-libgcc

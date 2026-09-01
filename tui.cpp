@@ -22,6 +22,10 @@ using std::vector;
 using namespace ftxui;
 using namespace tui_support;
 
+#ifndef APP_VERSION
+#define APP_VERSION "0.0.0-dev"
+#endif
+
 namespace {
 
 struct TerminalSize {
@@ -43,9 +47,7 @@ int main() {
 
   const int minTerminalWidth = 80;
   const int minTerminalHeight = 32;
-  const string appVersion = "1.2.1";
-  const string defaultMulticastNetmask = "255.255.0.0";
-  const string defaultMulticastNetprefix = "239.255.0.0";
+  const string appVersion = APP_VERSION;
 
   const ConfigPaths paths = getConfigPaths();
   if (!ensureConfigDirectory(paths.ndiDir)) {
@@ -682,9 +684,9 @@ int main() {
   machineNameSet(machineName, ndiConfig);
 
   const string multicastNetmaskForSave =
-    trim(multicastSendNetmask).empty() ? defaultMulticastNetmask : trim(multicastSendNetmask);
+    trim(multicastSendNetmask).empty() ? kDefaultMulticastNetmask : trim(multicastSendNetmask);
   const string multicastNetprefixForSave =
-    trim(multicastSendNetprefix).empty() ? defaultMulticastNetprefix : trim(multicastSendNetprefix);
+    trim(multicastSendNetprefix).empty() ? kDefaultMulticastNetprefix : trim(multicastSendNetprefix);
   const std::vector<std::string> multicastRecvSubnetsForSave = splitCsv(multicastRecvSubnets);
 
   multicastSendSet(

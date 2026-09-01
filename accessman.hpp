@@ -38,14 +38,20 @@ inline void ensureNumber(nlohmann::json& value, int fallback) {
 	if (!value.is_number()) value = fallback;
 }
 
+// Single source for multicast defaults used across generation, fallback
+// filling, and save-time coercion (previously defined in three places).
+inline const std::string kDefaultMulticastNetmask = "255.255.0.0";
+inline const std::string kDefaultMulticastNetprefix = "239.255.0.0";
+inline constexpr int kDefaultMulticastTtl = 1;
+
 inline void multicastGenConfig(nlohmann::json& ndiConfig) {
 	ndiConfig["ndi"]["multicast"] = {
 		{"recv", {{"enable", true}, {"subnets", nlohmann::json::array()}}},
 		{"send", {
 			{"enable", false},
-			{"netmask", "255.255.0.0"},
-			{"netprefix", "239.255.0.0"},
-			{"ttl", 1}
+			{"netmask", kDefaultMulticastNetmask},
+			{"netprefix", kDefaultMulticastNetprefix},
+			{"ttl", kDefaultMulticastTtl}
 		}}
 	};
 }
@@ -147,9 +153,9 @@ inline void multicastSendSet(bool send, std::string netmask, std::string netpref
 	if (!ndiConfig["ndi"]["multicast"].contains("send")) {
 		ndiConfig["ndi"]["multicast"]["send"] = {
 			{"enable", false},
-			{"netmask", "255.255.0.0"},
-			{"netprefix", "239.255.0.0"},
-			{"ttl", 1}
+			{"netmask", kDefaultMulticastNetmask},
+			{"netprefix", kDefaultMulticastNetprefix},
+			{"ttl", kDefaultMulticastTtl}
 		};
 	}
 
@@ -218,19 +224,24 @@ inline void generateMissingConfig(nlohmann::json& ndiConfig) {
 	}
 
 	if (!ndiConfig["ndi"]["multicast"].contains("send")) {
-		ndiConfig["ndi"]["multicast"]["send"] = {{"enable", false}, {"netmask", ""}, {"netprefix", ""}, {"ttl", 1}};
+		ndiConfig["ndi"]["multicast"]["send"] = {
+			{"enable", false},
+			{"netmask", kDefaultMulticastNetmask},
+			{"netprefix", kDefaultMulticastNetprefix},
+			{"ttl", kDefaultMulticastTtl}
+		};
 	}
 
 	if (!ndiConfig["ndi"]["multicast"]["send"].contains("ttl")) {
-		ndiConfig["ndi"]["multicast"]["send"]["ttl"] = 1;
+		ndiConfig["ndi"]["multicast"]["send"]["ttl"] = kDefaultMulticastTtl;
 	}
 
 	if (!ndiConfig["ndi"]["multicast"]["send"].contains("netmask")) {
-		ndiConfig["ndi"]["multicast"]["send"]["netmask"] = "";
+		ndiConfig["ndi"]["multicast"]["send"]["netmask"] = kDefaultMulticastNetmask;
 	}
 
 	if (!ndiConfig["ndi"]["multicast"]["send"].contains("netprefix")) {
-		ndiConfig["ndi"]["multicast"]["send"]["netprefix"] = "";
+		ndiConfig["ndi"]["multicast"]["send"]["netprefix"] = kDefaultMulticastNetprefix;
 	}
 
 	if (!ndiConfig["ndi"]["multicast"].contains("recv")) {
