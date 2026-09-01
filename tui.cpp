@@ -350,15 +350,18 @@ int main() {
   });
 
   // Horizontal so Left/Right move focus between protocols natively.
-  Component modesRowContainer = Container::Horizontal({
-    tcpContainer,
-    rudpContainer,
-    unicastContainer
-  });
-
   Component multicastEnablesBox = Container::Vertical({
     multicastSendToggle,
     multicastRecvToggle
+  });
+
+  // Protocols + multicast enables in one band; wider columns so labels don't
+  // wrap. Left/Right moves across the four boxes; Up/Down moves within one.
+  Component modesRowContainer = Container::Horizontal({
+    tcpContainer,
+    rudpContainer,
+    unicastContainer,
+    multicastEnablesBox
   });
 
   Component multicastSettingsBox = Container::Vertical({
@@ -392,10 +395,9 @@ int main() {
 
   Component networkGroupsRow = Container::Vertical({ networkGroupsRowInner });
 
-  // (tcp/rudp/unicast/mode containers above remain individually vertical.)
+  // (modesRowContainer above now includes multicastEnablesBox.)
 
   Component multicastRowInner = Container::Horizontal({
-    multicastEnablesBox,
     multicastSettingsBox,
     multicastTtlBox
   });
@@ -552,49 +554,34 @@ int main() {
           separator(),
           colorizeRow(hbox(text(" Send ") ,separator(),tcpSendToggle->Render()), changedTcpSend, false),
           colorizeRow(hbox(text(" Recv ") ,separator(),tcpRecvToggle->Render()), changedTcpRecv, false)
-        ) | center),
+        ) | center | size(WIDTH, GREATER_THAN, 16)),
         border(vbox(
           text("RUDP") | bold | center,
-          separator(), 
+          separator(),
           colorizeRow(hbox(text(" Send ") ,separator(),rudpSendToggle->Render()), changedRudpSend, false),
           colorizeRow(hbox(text(" Recv ") ,separator(),rudpRecvToggle->Render()), changedRudpRecv, false)
-        ) | center),
+        ) | center | size(WIDTH, GREATER_THAN, 16)),
         border(vbox(
-          text("Unicast") | bold | center, 
-          separator(), 
+          text("Unicast") | bold | center,
+          separator(),
           colorizeRow(hbox(text(" Send ") ,separator(),unicastSendToggle->Render()), changedUnicastSend, false),
           colorizeRow(hbox(text(" Recv ") ,separator(),unicastRecvToggle->Render()), changedUnicastRecv, false)
-        ) | center
-      ) | center ) | center,
+        ) | center | size(WIDTH, GREATER_THAN, 16)),
+        border(vbox(
+          text(" Mcast ") | bold | center,
+          separator(),
+          colorizeRow(hbox(text(" Send ") ,separator(),multicastSendToggle->Render()), changedMulticastSend, false),
+          colorizeRow(hbox(text(" Recv ") ,separator(),multicastRecvToggle->Render()), changedMulticastRecv, false)
+        ) | center | size(WIDTH, GREATER_THAN, 16))
+      ) | center,
 
       hbox(
         border(
           vbox(
-            text("     Multicast Enables     ") | bold | center,
+            text("    Multicast Send Settings    ") | bold | center,
             separator(),
             hbox(
               vbox(
-                colorizeRow(
-                  hbox(text(" Send ") | bold | center, separator(),multicastSendToggle->Render()),
-                  changedMulticastSend,
-                  false
-                ),
-                colorizeRow(
-                  hbox(text(" Recv ") | bold | center, separator(),multicastRecvToggle->Render()),
-                  changedMulticastRecv,
-                  false
-                )
-                )
-              )
-            ) | center
-          ) | center,
-
-      border(
-        vbox(
-          text("    Multicast Send Settings    ") | bold | center,
-          separator(),
-          hbox(
-            vbox( 
                 colorizeRow(
                   hbox(text("  Netmask  ") | bold | center, separator(),multicastSendNetmaskInput->Render()),
                   changedNetmask,
@@ -605,28 +592,26 @@ int main() {
                   changedNetprefix,
                   invalidNetprefix
                 )
-                )
-              )
+              ) | center
             )
-          ),
-      border(
-        vbox(
-          text("        Multicast        ") | bold | center,
-          text("TTL") | bold | center,
-          separator(),
-          hbox(
-            vbox( 
+          )
+        ),
+        border(
+          vbox(
+            text("     Multicast TTL     ") | bold | center,
+            separator(),
+            hbox(
+              vbox(
                 colorizeRow(
                   hbox(text(" TTL ") | bold | center, separator(),multicastSendTTLInput->Render() | size(WIDTH, EQUAL, 5)),
                   changedMulticastTtl,
                   invalidTtl
                 )
-                ) | center
-              )
-            ) | center
-          ) | center
-
-        ) | center,
+              ) | center
+            )
+          )
+        ) | center
+      ) | center,
 
       border(
         vbox(
