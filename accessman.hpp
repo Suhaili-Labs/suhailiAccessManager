@@ -4,13 +4,18 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <pwd.h>
 #include <string>
+#include <unistd.h>
 #include <vector>
 #include "json.hpp"
 
+// $HOME first, then the OS account's home dir, then empty (relative paths).
+// A plain-daemon environment often has no $HOME set.
 inline std::string getHomeDir() {
-	const char* home = std::getenv("HOME");
-	return home ? std::string(home) : std::string("");
+	if (const char* home = std::getenv("HOME")) return std::string(home);
+	if (const passwd* pw = getpwuid(getuid()); pw && pw->pw_dir) return std::string(pw->pw_dir);
+	return {};
 }
 
 // Type coercion helpers: enforce the NDI SDK field types so hand-edited
