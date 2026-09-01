@@ -399,7 +399,8 @@ int main() {
 
   Component multicastRowInner = Container::Horizontal({
     multicastSettingsBox,
-    multicastTtlBox
+    multicastTtlBox,
+    multicastRecvSubnetsInput
   });
   Component multicastRow = Container::Vertical({ multicastRowInner });
 
@@ -415,7 +416,6 @@ int main() {
     networkGroupsRow,
     modesRowContainer,
     multicastRow,
-    multicastRecvSubnetsInput,
     bottomButtonsRow
   });
 
@@ -611,23 +611,22 @@ int main() {
               ) | center
             )
           )
-        ) | center
-      ) | center,
-
-      border(
-        vbox(
-          text("Multicast Recv Subnets") | bold | center,
-          separator(),
-          colorizeRow(
-            hbox(
-              text(" Subnets "),
-              separator(),
-              multicastRecvSubnetsInput->Render() | size(WIDTH, EQUAL, 38)
-            ) | center,
-            changedMulticastRecvSubnets,
-            invalidMulticastRecvSubnets
+        ),
+        border(
+          vbox(
+            text(" Recv Subnets ") | bold | center,
+            separator(),
+            colorizeRow(
+              hbox(
+                text(" Subnets "),
+                separator(),
+                multicastRecvSubnetsInput->Render() | size(WIDTH, EQUAL, 38)
+              ) | center,
+              changedMulticastRecvSubnets,
+              invalidMulticastRecvSubnets
+            )
           )
-        )
+        ) | center
       ) | center,
 
       border(
