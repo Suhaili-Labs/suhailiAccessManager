@@ -172,8 +172,19 @@ int main() {
   test_wrong_types_coerced();
   test_multicast_gen_config();
 
-  std::cout << "\n[validator regression]\n";
-  std::cout << "[info] tui_support validator edges expanded in commit 6 (B5)\n";
+  std::cout << "\n[validator regression — B5]\n";
+  using namespace tui_support;
+  expect(!isValidIPv4("010.0.0.1"), "isValidIPv4 rejects leading-zero octets");
+  expect(isValidIPv4("10.0.0.1"), "isValidIPv4 still accepts plain IPv4");
+  expect(!isValidNetmask("0.0.0.0"), "isValidNetmask rejects all-zero mask");
+  expect(isValidNetmask("255.255.0.0"), "isValidNetmask accepts contiguous mask");
+  expect(!isValidNetmask("255.0.255.0"), "isValidNetmask rejects non-contiguous mask");
+  expect(isValidDiscoveryEntry("192.168.1.1"), "discovery entry: plain IPv4 ok");
+  expect(isValidDiscoveryEntry("192.168.1.1:5960"), "discovery entry: IPv4:port ok (NDI SDK)");
+  expect(!isValidDiscoveryEntry("192.168.1.1:0"), "discovery entry: port 0 rejected");
+  expect(!isValidDiscoveryEntry("192.168.1.1:70000"), "discovery entry: port >65535 rejected");
+  expect(!isValidDiscoveryEntry("192.168.1.1:"), "discovery entry: empty port rejected");
+  expect(!isValidDiscoveryEntry(":5960"), "discovery entry: empty address rejected");
 
   if (gFailures > 0) {
     std::cout << "\n" << gFailures << " failure(s)\n";

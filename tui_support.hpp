@@ -212,6 +212,10 @@ inline bool isValidIPv4(const std::string& value) {
     if (part.empty() || part.size() > 3) {
       return false;
     }
+    // Reject leading zeros: "010" octets are ambiguous (octal for inet_aton).
+    if (part.size() > 1 && part[0] == '0') {
+      return false;
+    }
     for (char c : part) {
       if (!std::isdigit(static_cast<unsigned char>(c))) {
         return false;
@@ -236,6 +240,11 @@ inline bool isValidNetmask(const std::string& value) {
   uint32_t mask = 0;
   while (std::getline(ss, part, '.')) {
     mask = (mask << 8) | static_cast<uint32_t>(std::stoi(part));
+  }
+
+  // All-zero mask (/0) is meaningless for a multicast send range; reject.
+  if (mask == 0) {
+    return false;
   }
 
   bool seenZero = false;
@@ -302,6 +311,35 @@ inline bool validateCsvCidr(const std::string& value) {
 inline bool validateCsvIPv4(const std::string& value) {
   for (const std::string& token : splitCsv(value)) {
     if (!isValidIPv4(token)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// NDI discovery entries per SDK docs are IPv4 with an optional ":port".
+inline bool isValidDiscoveryEntry(const std::string& value) {
+  const std::size_t colonPos = value.find(':');
+  if (colonPos == std::string::npos) {
+    return isValidIPv4(value);
+  }
+  const std::string address = value.substr(0, colonPos);
+  const std::string portStr = value.substr(colonPos + 1);
+  if (address.empty() || portStr.empty() || portStr.size() > 5) {
+    return false;
+  }
+  for (char c : portStr) {
+    if (!std::isdigit(static_cast<unsigned char>(c))) {
+      return false;
+    }
+  }
+  const int port = std::stoi(portStr);
+  return isValidIPv4(address) && port >= 1 && port <= 65535;
+}
+
+inline bool validateDiscoveryCsv(const std::string& value) {
+  for (const std::string& token : splitCsv(value)) {
+    if (!isValidDiscoveryEntry(token)) {
       return false;
     }
   }

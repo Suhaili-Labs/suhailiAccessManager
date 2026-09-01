@@ -199,8 +199,8 @@ int main() {
   };
 
   validateBeforeSave = [&](string& errorMessage) {
-    if (!validateCsvIPv4(discoveryServers)) {
-      errorMessage = "Discovery list must contain valid IPv4 values";
+    if (!validateDiscoveryCsv(discoveryServers)) {
+      errorMessage = "Discovery list must contain valid IPv4[:port] values";
       return false;
     }
     if (!validateCsvIPv4(ips)) {
@@ -454,7 +454,7 @@ int main() {
     const bool changedNetmask = multicastSendNetmask != initialMulticastSendNetmask;
     const bool changedNetprefix = multicastSendNetprefix != initialMulticastSendNetprefix;
 
-    const bool invalidDiscovery = validationAttempted && !validateCsvIPv4(discoveryServers);
+    const bool invalidDiscovery = validationAttempted && !validateDiscoveryCsv(discoveryServers);
     const bool invalidIps = validationAttempted && !validateCsvIPv4(ips);
     const bool invalidMulticastRecvSubnets = validationAttempted && !validateCsvCidr(multicastRecvSubnets);
     const bool invalidNetmask =
