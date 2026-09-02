@@ -2,7 +2,8 @@
 
 Terminal UI tool for managing the NDI configuration file on Linux.
 
-<img width="1034" height="690" alt="Screenshot 2026-08-06 at 1 50 55 PM" src="https://github.com/user-attachments/assets/6b154f64-476e-4db1-8a3b-c2463e9813df" />
+<img width="973" height="926" alt="image" src="https://github.com/user-attachments/assets/4fb0a328-e303-4006-9a27-73b966c053e3" />
+
 
 This project edits the NDI SDK config file: `~/.ndi/ndi-config.v1.json`. The
 config controls discovery, groups, transport modes, and multicast behavior used
