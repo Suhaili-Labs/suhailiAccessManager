@@ -16,8 +16,11 @@ design docs when needed; this list is the canonical work queue.
 
 - [ ] (larger-research) **REST API prep (deferred)** — typed `NdiConfig` model,
       `core/` split, per-field validation report; review §3.2–3.3.
-- [ ] (larger-research) **TUI layout improvements (deferred)** — container
-      direction audit, `Terminal::Size()`, status semantics; review §4.
+- [ ] (larger-research) **TUI status/semantics cleanup (deferred)** — status
+      line semantics (neutral vs validated), `Terminal::Size()` instead of
+      ioctl, min-size gate event handling; review §4.
+- [ ] **Adaptive band width (came up in 90-char equal-width work)** — compute
+      `EQUAL,90` from `Terminal::Size()` at runtime instead of fixed constant.
 
 ## Done
 
@@ -28,10 +31,11 @@ design docs when needed; this list is the canonical work queue.
 - [x] (BUG) **B1: wrong leaf types no longer crash** — DONE @ 66a4a22:
       `ensureBool/ensureString/ensureNumber` sanitize wrong-typed leaf values to
       defaults inside `generateMissingConfig`; subnets array enforced + filtered.
-- [x] (BUG) **B2: Left/Right blocked in Input fields** — DONE @ 8892f41:
-      `modesRowContainer` → `Container::Horizontal`, multicast split into three
-      horizontal sub-containers, top-level CatchEvent remap removed, footer hint
-      updated.
+- [x] (BUG) **B2: arrow navigation broken** — DONE series 8892f41 → 18edf88:
+      `modesRowContainer` → `Container::Horizontal`; nested Vertical wrappers so
+      Up/Down bubbles at each band level (4888ba4, bc80360); swap Toggles for
+      Checkboxes and TTL for numeric Input so Left/Right stays focus navigation
+      everywhere (18edf88).
 - [x] (BUG) **B3: HOME fallback** — DONE @ dd5f296: `getpwuid(getuid())->pw_dir`
       fallback when `$HOME` is unset.
 - [x] (REFACTOR) **B4: single-source defaults + version** — DONE @ f224cd8:
@@ -45,4 +49,24 @@ design docs when needed; this list is the canonical work queue.
 - [x] (DOCS) **B6: dead code + docs cleanup** — DONE @ a7b2e69: removed unused
       `configExists()`, added explicit `<cstdint>` include, README Exit wording
       replaced with Save/Discard semantics.
+- [x] (DOCS) **CHANGELOG entry for B1–B6** — DONE @ 985d1a6: dated entry and
+      Done-hashed items moved in `TODO.md`.
+- [x] (FEATURE) **Protocol row layout evolved** — DONE series 9d3bbb6, 3270d15,
+      26ea5d0, b26366a, c450d55, bb24209, 2e9e661: Mcast box merged into the
+      protocols row; two-line titles on TTL & Recv Subnets; protocols widened
+      16→21; multicast band reduced to Settings+TTL; subnets moved in.
+- [x] (STYLE) **Equal-width band centering** — DONE series 1c4696f, 9421985,
+      4fd8ccd: all three band rows bottom at `size(WIDTH, EQUAL, 90)` wrapped in
+      `filler()` children so terminal centering is preserved.
+- [x] (STYLE) **Checkbox spacing fix** — DONE @ ee07da3 then corrected @ b2ed930:
+      text-label padding inserted explicitly as `text("  ")` element between
+      separator and render (label spaces alone didn't move the check glyph).
+- [x] (CHORE) **Version bump to 1.3.0** — DONE @ 172b673; forced-rebuild required
+      because `version.txt` isn't tracked by make.
+- [x] (DOCS) **README split + slim** — DONE @ 3b2e611: NixOS integration moved
+      to `docs/nixos.md`, tags refreshed to `v1.3.0`, README reduced from 209
+      lines to 109 and structure section refreshed (`version.txt`, `tests/`,
+      `TODO.md`, `agent/`).
+- [x] **Release v1.3.0 tagged** — tag `v1.3.0` pushed to origin; release notes
+      prepared for manual attachment (gh auth required).
 

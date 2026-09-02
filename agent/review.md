@@ -1,10 +1,44 @@
 # Code Review — suhailiAccessManager
 
-Review date: 2026-09-01
-Scope: `tui.cpp`, `accessman.hpp`, `tui_support.hpp`, `build/makefile`, `flake.nix`, docs.
-Forward-looking constraint: a small oat++ REST API server will be added later so remote clients can edit the config file. Recommendations are prioritized accordingly.
+Review date: 2026-09-01 (review)
+Execution date: 2026-09-01 through 2026-09-01 (fix series)
 
-Two small standalone test programs were compiled against the repo headers to verify suspected bugs; results are quoted in the relevant sections. Tests lived in `/tmp/opencode/review_tests/` and are not part of the repo.
+Fix series status: **B1–B6 fully resolved** (see ledger below). Deferred items
+(REST API prep, TUI status semantics, adaptive width) remain listed in
+[TODO.md](../TODO.md) as Open.
+
+## Fix Series Ledger (B1–B6)
+
+| Item | Fix hash(s) | Notes |
+|------|-------------|-------|
+| harness | 0d77bf6 | `tests/schema_check.cpp` + `tests/run.sh`. Schema run before every later commit. |
+| B1 | 66a4a22 | `ensureBool/ensureString/ensureNumber` in `accessman.hpp`. Regression test self-flipped `[ok]`. |
+| B2 | 8892f41, 4888ba4, bc80360, 18edf88 | Horizontal→Vertical bubble restructure, then Toggle→Checkbox + TTL→Input swap: swap was the actual full fix (deduced from FTXUI `container.cpp`/`checkbox.cpp`). |
+| B3 | dd5f296 | `getpwuid(getuid())->pw_dir` fallback. |
+| B4 | f224cd8 | `version.txt` + `-DAPP_VERSION` + `kDefaultMulticast*` constants. |
+| B5 | feff00a | leading-zero IPv4 rejected, `0.0.0.0` netmask rejected, discovery accepts optional `:port`. |
+| B6 | a7b2e69 | dead `configExists` gone, explicit `<cstdint>` include, README wording. |
+| docs | 985d1a6 | TODO done-move + CHANGELOG entry. |
+
+## Post-fix UI Layout Series (v1.3.0)
+
+B1-B6 completion was followed by a series that reworked the TUI visuals:
+
+- Protocol row layout: merged Mcast into protocol row, merged Recv Subnets into
+  multicast band, protocol widths 16→21 (9d3bbb6, 3270d15, 26ea5d0, b26366a,
+  bb24209, 2e9e661, c450d55).
+- Equal-width band centering: all three bands at `EQUAL, 90` with filler
+  separator rows (1c4696f, 9421985, 4fd8ccd).
+- Checkbox spacing: explicit `text("  ")` padding after separator (b2ed930;
+  retried from label-space attempt ee07da3 that didn't move the `[X]` glyph).
+- Version bump: `1.3.0` in `version.txt`; forced-rebuild required (172b673).
+- README: NixOS moved to `docs/nixos.md`, tags refreshed to `v1.3.0` (3b2e611).
+- Tag pushed: `v1.3.0`; release notes text gathered (gh auth manual publish).
+
+## Deferred
+
+See [TODO.md](../TODO.md) Open: REST APIprep, TUI status semantics +
+`Terminal::Size()`, adaptive equal-width band sizing.
 
 ---
 
